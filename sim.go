@@ -233,10 +233,12 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	x := net.AddLayer2D("X", 1, ss.Size, emer.Target)
 	y := net.AddLayer2D("Y", 1, ss.Size, emer.Target)
 	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.MaxDist, emer.Target)
+	ang := net.AddLayer2D("Angle", 1, ss.TrainEnv.MaxAngle, emer.Target)
 
 	x.SetClass("Output")
 	y.SetClass("Output")
 	dist.SetClass("Output")
+	ang.SetClass("Output")
 
 	// use this to position layers relative to each other
 	// default is Above, YAlign = Front, XAlign = Center
@@ -250,6 +252,7 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.BidirConnectLayers(hid, x, full)
 	net.BidirConnectLayers(hid, y, full)
 	net.BidirConnectLayers(hid, dist, full)
+	net.BidirConnectLayers(hid, ang, full)
 
 	// note: if you wanted to change a layer type from e.g., Target to Compare, do this:
 	// out.SetType(emer.Compare)
@@ -376,7 +379,7 @@ func (ss *Sim) AlphaCyc(train bool) {
 	}
 }
 
-// ApplyInputs applies input patterns from given envirbonment.
+// ApplyInputs applies input patterns from given environment.
 // It is good practice to have this be a separate method with appropriate
 // args so that it can be used for various different contexts
 // (training, testing, etc).
@@ -384,7 +387,7 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	lays := []string{"Input", "X", "Y", "Distance"}
+	lays := []string{"Input", "X", "Y", "Distance", "Angle"}
 	for _, lnm := range lays {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
 		pats := en.State(ly.Nm)

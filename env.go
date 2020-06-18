@@ -24,13 +24,16 @@ type ExEnv struct {
 	Dsc   string          `desc:"description of this environment"`
 	Size  int             `desc:"size of each dimension in 2D input"`
 	MaxDist int
+	MaxAngle int
 	DistPop popcode.OneD  `desc:"population encoding of distance value"`
+	AnglePop popcode.OneD
 	Point image.Point     `desc:"X,Y coordinates of point"`
 	Point2 image.Point
 	Input etensor.Float32 `desc:"input state, 2D Size x Size"`
 	X     etensor.Float32 `desc:"X as a one-hot state 1D Size"` //Make this distance
 	Y     etensor.Float32 `desc:"Y  as a one-hot state 1D Size"` //Make this angle
 	Distance etensor.Float32
+	Angle etensor.Float32
 	Run   env.Ctr         `view:"inline" desc:"current run of model as provided during Init"`
 	Epoch env.Ctr         `view:"inline" desc:"number of times through Seq.Max number of sequences"`
 	Trial env.Ctr         `view:"inline" desc:"trial increments over input states -- could add Event as a lower level"`
@@ -43,14 +46,18 @@ func (ev *ExEnv) Desc() string { return ev.Dsc }
 func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Size = sz
 	ev.MaxDist = int(float64(sz)*math.Sqrt(2))
+	ev.MaxAngle = 10 //scaled down from 180
 	ev.DistPop.Defaults()
 	ev.DistPop.Min = 0
 	ev.DistPop.Max = float32(ev.MaxDist)*1.1
+	ev.AnglePop.Min = -10
+	ev.AnglePop.Max = float32(ev.MaxAngle)*1.1
 	ev.Trial.Max = ntrls
 	ev.Input.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	ev.X.SetShape([]int{sz}, nil, []string{"X"})
 	ev.Y.SetShape([]int{sz}, nil, []string{"Y"})
 	ev.Distance.SetShape([]int{ev.MaxDist}, nil, []string{"Distance"})
+	ev.Angle.SetShape([]int{ev.MaxAngle}, nil, []string{"Angle"})
 }
 
 func (ev *ExEnv) Validate() error {
@@ -70,6 +77,7 @@ func (ev *ExEnv) States() env.Elements {
 		{"X", []int{ev.Size}, []string{"X"}},
 		{"Y", []int{ev.Size}, []string{"Y"}},
 		{"Distance", []int{ev.Size}, []string{"Distance"}},
+		{"Angle", []int{ev.Size}, []string{"Angle"}},
 	}
 	return els
 }
@@ -84,6 +92,8 @@ func (ev *ExEnv) State(element string) etensor.Tensor {
 		return &ev.Y
 	case "Distance":
 		return &ev.Distance
+	case "Angle":
+		return &ev.Angle
 	}
 	return nil
 }
@@ -116,6 +126,7 @@ func (ev *ExEnv) NewPoint() {
 	ev.Point2.X = rand.Intn(ev.Size)
 	ev.Point2.Y = rand.Intn(ev.Size)
 	dist := math.Sqrt( float64( (ev.Point.X - ev.Point2.X)^2 + (ev.Point.Y - ev.Point2.Y)^2 ) )
+	ang := 10*math.Atan(float64((ev.Point2.Y-ev.Point.Y)/(ev.Point2.X-ev.Point.X)))/math.Pi
 	ev.Input.SetZeros()
 	ev.Input.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.Input.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
@@ -126,6 +137,7 @@ func (ev *ExEnv) NewPoint() {
 	ev.Y.SetFloat([]int{ev.Point.Y}, 1)
 	ev.Y.SetFloat([]int{ev.Point2.Y}, 1)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.MaxDist)
+	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.MaxAngle)
 }
 
 // Step is called to advance the environment state
