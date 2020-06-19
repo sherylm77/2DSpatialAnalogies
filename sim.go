@@ -487,8 +487,9 @@ func (ss *Sim) TrialStats(accum bool) {
 	//x := ss.Net.LayerByName("X").(leabra.LeabraLayer).AsLeabra()
 	//y := ss.Net.LayerByName("Y").(leabra.LeabraLayer).AsLeabra()
 	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
+	ang := ss.Net.LayerByName("Angle").(leabra.LeabraLayer).AsLeabra()			
 	//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
-	ss.TrlCosDiff = float64(dist.CosDiff.Cos)
+	ss.TrlCosDiff = float64(dist.CosDiff.Cos+ang.CosDiff.Cos) * 0.5
 	//ss.TrlSSE, ss.TrlAvgSSE = x.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
 	ss.TrlSSE, ss.TrlAvgSSE = dist.MSE(0.5)
 	//ys, ya := y.MSE(0.5)
