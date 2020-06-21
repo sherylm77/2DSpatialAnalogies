@@ -229,6 +229,7 @@ func (ss *Sim) ConfigEnv() {
 func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.InitName(net, "EnvSim")
 	inp := net.AddLayer2D("Input", ss.Size, ss.Size, emer.Input)
+	attn := net.AddLayer2D("Attn", ss.Size, ss.Size, emer.Input)
 	hid := net.AddLayer2D("Hidden", 10, 10, emer.Hidden)
 	x := net.AddLayer2D("X", 1, ss.Size, emer.Target)
 	y := net.AddLayer2D("Y", 1, ss.Size, emer.Target)
@@ -243,6 +244,7 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	// use this to position layers relative to each other
 	// default is Above, YAlign = Front, XAlign = Center
 	y.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "X", XAlign: relpos.Left, Space: 4})
+	attn.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Input", YAlign: relpos.Front, Space: 4})
 
 	// note: see emergent/prjn module for all the options on how to connect
 	// NewFull returns a new prjn.Full connectivity pattern
@@ -387,7 +389,7 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	lays := []string{"Input", "X", "Y", "Distance", "Angle"}
+	lays := []string{"Input", "Attn", "X", "Y", "Distance", "Angle"}
 	for _, lnm := range lays {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
 		pats := en.State(ly.Nm)

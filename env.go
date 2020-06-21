@@ -29,6 +29,7 @@ type ExEnv struct {
 	AnglePop popcode.OneD
 	Point    image.Point `desc:"X,Y coordinates of point"`
 	Point2   image.Point
+	Attn     etensor.Float32 `desc: "attentional layer"`
 	Input    etensor.Float32 `desc:"input state, 2D Size x Size"`
 	X        etensor.Float32 `desc:"X as a one-hot state 1D Size"`  //Make this distance
 	Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"` //Make this angle
@@ -55,6 +56,7 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.AnglePop.Max = float32(ev.MaxAngle) * 1.1
 	ev.Trial.Max = ntrls
 	ev.Input.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
+	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	ev.X.SetShape([]int{sz}, nil, []string{"X"})
 	ev.Y.SetShape([]int{sz}, nil, []string{"Y"})
 	ev.Distance.SetShape([]int{ev.MaxDist}, nil, []string{"Distance"})
@@ -75,6 +77,7 @@ func (ev *ExEnv) Counters() []env.TimeScales {
 func (ev *ExEnv) States() env.Elements {
 	els := env.Elements{
 		{"Input", []int{ev.Size, ev.Size}, []string{"Y", "X"}},
+		{"Attn", []int{ev.Size, ev.Size}, []string{"Y", "X"}},
 		{"X", []int{ev.Size}, []string{"X"}},
 		{"Y", []int{ev.Size}, []string{"Y"}},
 		{"Distance", []int{ev.Size}, []string{"Distance"}},
@@ -87,6 +90,8 @@ func (ev *ExEnv) State(element string) etensor.Tensor {
 	switch element {
 	case "Input":
 		return &ev.Input
+	case "Attn":
+		return &ev.Attn
 	case "X":
 		return &ev.X
 	case "Y":
@@ -130,8 +135,10 @@ func (ev *ExEnv) NewPoint() {
 	ang := float64(ev.MaxAngle) * (math.Atan2(float64(ev.Point2.Y-ev.Point.Y), float64(ev.Point2.X-ev.Point.X)) / math.Pi)
 	// fmt.Printf("ang: %v\n", ang)
 	ev.Input.SetZeros()
+	ev.Attn.SetZeros()
 	ev.Input.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.Input.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
+	ev.Attn.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.X.SetZeros()
 	ev.X.SetFloat([]int{ev.Point.X}, 1)
 	ev.X.SetFloat([]int{ev.Point2.X}, 1)
