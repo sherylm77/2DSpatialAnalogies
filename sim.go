@@ -493,8 +493,11 @@ func (ss *Sim) TrialStats(accum bool) {
 	//ss.TrlSSE, ss.TrlAvgSSE = x.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
 	ss.TrlSSE, ss.TrlAvgSSE = dist.MSE(0.5)
 	//ys, ya := y.MSE(0.5)
+	ang_s, ang_a := ang.MSE(0.5)
 	//ss.TrlSSE += ys
+	ss.TrlSSE += ang_s
 	//ss.TrlAvgSSE = 0.5 * (ss.TrlAvgSSE + ya)
+	ss.TrlAvgSSE = 0.5 * (ss.TrlAvgSSE + ang_a)
 	if ss.TrlSSE > 0 {
 		ss.TrlErr = 1
 	} else {
