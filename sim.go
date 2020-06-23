@@ -178,7 +178,7 @@ func (ss *Sim) New() {
 	ss.TrainUpdt = leabra.AlphaCycle
 	ss.TestUpdt = leabra.Cycle
 	ss.TestInterval = 5
-	ss.LayStatNms = []string{"Input", "X", "Y"}
+	ss.LayStatNms = []string{"Input"}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,19 +231,19 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	inp := net.AddLayer2D("Input", ss.Size, ss.Size, emer.Input)
 	attn := net.AddLayer2D("Attn", ss.Size, ss.Size, emer.Input)
 	hid := net.AddLayer2D("Hidden", 10, 10, emer.Hidden)
-	x := net.AddLayer2D("X", 1, ss.Size, emer.Target)
-	y := net.AddLayer2D("Y", 1, ss.Size, emer.Target)
+	//x := net.AddLayer2D("X", 1, ss.Size, emer.Target)
+	//y := net.AddLayer2D("Y", 1, ss.Size, emer.Target)
 	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.MaxDist, emer.Target)
 	ang := net.AddLayer2D("Angle", 1, ss.TrainEnv.MaxAngle, emer.Target)
 
-	x.SetClass("Output")
-	y.SetClass("Output")
+	//x.SetClass("Output")
+	//y.SetClass("Output")
 	dist.SetClass("Output")
 	ang.SetClass("Output")
 
 	// use this to position layers relative to each other
 	// default is Above, YAlign = Front, XAlign = Center
-	y.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "X", XAlign: relpos.Left, Space: 4})
+	//y.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "X", XAlign: relpos.Left, Space: 4})
 	attn.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Input", YAlign: relpos.Front, Space: 4})
 
 	// note: see emergent/prjn module for all the options on how to connect
@@ -251,8 +251,9 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	full := prjn.NewFull()
 
 	net.ConnectLayers(inp, hid, full, emer.Forward)
-	net.BidirConnectLayers(hid, x, full)
-	net.BidirConnectLayers(hid, y, full)
+	net.ConnectLayers(attn, hid, full, emer.Forward)
+	//net.BidirConnectLayers(hid, x, full)
+	//net.BidirConnectLayers(hid, y, full)
 	net.BidirConnectLayers(hid, dist, full)
 	net.BidirConnectLayers(hid, ang, full)
 
@@ -389,7 +390,7 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	lays := []string{"Input", "Attn", "X", "Y", "Distance", "Angle"}
+	lays := []string{"Input", "Attn", "Distance", "Angle"}
 	for _, lnm := range lays {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
 		pats := en.State(ly.Nm)

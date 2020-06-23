@@ -31,8 +31,8 @@ type ExEnv struct {
 	Point2   image.Point
 	Attn     etensor.Float32 `desc: "attentional layer"`
 	Input    etensor.Float32 `desc:"input state, 2D Size x Size"`
-	X        etensor.Float32 `desc:"X as a one-hot state 1D Size"`  //Make this distance
-	Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"` //Make this angle
+	// X        etensor.Float32 `desc:"X as a one-hot state 1D Size"` 
+	// Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"` 
 	Distance etensor.Float32
 	Angle    etensor.Float32
 	Run      env.Ctr `view:"inline" desc:"current run of model as provided during Init"`
@@ -57,8 +57,8 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Trial.Max = ntrls
 	ev.Input.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
-	ev.X.SetShape([]int{sz}, nil, []string{"X"})
-	ev.Y.SetShape([]int{sz}, nil, []string{"Y"})
+	// ev.X.SetShape([]int{sz}, nil, []string{"X"})
+	// ev.Y.SetShape([]int{sz}, nil, []string{"Y"})
 	ev.Distance.SetShape([]int{ev.MaxDist}, nil, []string{"Distance"})
 	ev.Angle.SetShape([]int{ev.MaxAngle}, nil, []string{"Angle"})
 }
@@ -78,8 +78,8 @@ func (ev *ExEnv) States() env.Elements {
 	els := env.Elements{
 		{"Input", []int{ev.Size, ev.Size}, []string{"Y", "X"}},
 		{"Attn", []int{ev.Size, ev.Size}, []string{"Y", "X"}},
-		{"X", []int{ev.Size}, []string{"X"}},
-		{"Y", []int{ev.Size}, []string{"Y"}},
+		// {"X", []int{ev.Size}, []string{"X"}},
+		// {"Y", []int{ev.Size}, []string{"Y"}},
 		{"Distance", []int{ev.Size}, []string{"Distance"}},
 		{"Angle", []int{ev.Size}, []string{"Angle"}},
 	}
@@ -92,10 +92,6 @@ func (ev *ExEnv) State(element string) etensor.Tensor {
 		return &ev.Input
 	case "Attn":
 		return &ev.Attn
-	case "X":
-		return &ev.X
-	case "Y":
-		return &ev.Y
 	case "Distance":
 		return &ev.Distance
 	case "Angle":
@@ -139,12 +135,12 @@ func (ev *ExEnv) NewPoint() {
 	ev.Input.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.Input.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
 	ev.Attn.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
-	ev.X.SetZeros()
-	ev.X.SetFloat([]int{ev.Point.X}, 1)
-	ev.X.SetFloat([]int{ev.Point2.X}, 1)
-	ev.Y.SetZeros()
-	ev.Y.SetFloat([]int{ev.Point.Y}, 1)
-	ev.Y.SetFloat([]int{ev.Point2.Y}, 1)
+	// ev.X.SetZeros()
+	// ev.X.SetFloat([]int{ev.Point.X}, 1)
+	// ev.X.SetFloat([]int{ev.Point2.X}, 1)
+	// ev.Y.SetZeros()
+	// ev.Y.SetFloat([]int{ev.Point.Y}, 1)
+	// ev.Y.SetFloat([]int{ev.Point2.Y}, 1)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.MaxDist)
 	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.MaxAngle)
 }
