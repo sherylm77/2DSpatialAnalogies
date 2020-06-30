@@ -78,7 +78,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".Output", Desc: "output has higher inhib because localist",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "2.2",
+					"Layer.Inhib.Layer.Gi": "1.8",
 				}},
 		},
 	}},
@@ -490,7 +490,12 @@ func (ss *Sim) TrialStats(accum bool) {
 	//x := ss.Net.LayerByName("X").(leabra.LeabraLayer).AsLeabra()
 	//y := ss.Net.LayerByName("Y").(leabra.LeabraLayer).AsLeabra()
 	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
-	ang := ss.Net.LayerByName("Angle").(leabra.LeabraLayer).AsLeabra()			
+	ang := ss.Net.LayerByName("Angle").(leabra.LeabraLayer).AsLeabra()	
+	dtsr := ss.ValsTsr(dist.Nm)	
+	dist.UnitValsTensor(dtsr, "ActM")
+	distVal := ss.TrainEnv.DistPop.Decode(dtsr.Values)	
+	targDist := ss.TrainEnv.DistVal
+	distError := math32.Abs(distVal - targDist)
 	//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
 	ss.TrlCosDiff = float64(dist.CosDiff.Cos+ang.CosDiff.Cos) * 0.5
 	//ss.TrlSSE, ss.TrlAvgSSE = x.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
