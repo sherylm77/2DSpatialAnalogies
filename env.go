@@ -35,6 +35,8 @@ type ExEnv struct {
 	// Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"` 
 	Distance etensor.Float32
 	Angle    etensor.Float32
+	DistVal  float32
+	AngVal   float32
 	Run      env.Ctr `view:"inline" desc:"current run of model as provided during Init"`
 	Epoch    env.Ctr `view:"inline" desc:"number of times through Seq.Max number of sequences"`
 	Trial    env.Ctr `view:"inline" desc:"trial increments over input states -- could add Event as a lower level"`
@@ -143,6 +145,8 @@ func (ev *ExEnv) NewPoint() {
 	// ev.Y.SetFloat([]int{ev.Point2.Y}, 1)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.MaxDist)
 	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.MaxAngle)
+	ev.DistVal = float32(dist)
+	ev.AngVal = float32(ang)
 }
 
 // Step is called to advance the environment state
