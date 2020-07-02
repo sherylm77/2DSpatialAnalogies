@@ -128,6 +128,8 @@ type Sim struct {
 	EpcPerTrlMSec float64 `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
 	FirstZero     int     `inactive:"+" desc:"epoch at when SSE first went to zero"`
 	NZero         int     `inactive:"+" desc:"number of epochs in a row with zero SSE"`
+	DistanceError float64
+	AngleError    float64
 
 	// internal state - view:"-"
 	SumErr       float64                     `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
@@ -490,12 +492,20 @@ func (ss *Sim) TrialStats(accum bool) {
 	//x := ss.Net.LayerByName("X").(leabra.LeabraLayer).AsLeabra()
 	//y := ss.Net.LayerByName("Y").(leabra.LeabraLayer).AsLeabra()
 	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
-	ang := ss.Net.LayerByName("Angle").(leabra.LeabraLayer).AsLeabra()	
-	dtsr := ss.ValsTsr(dist.Nm)	
+	ang := ss.Net.LayerByName("Angle").(leabra.LeabraLayer).AsLeabra()
+	dtsr := ss.ValsTsr(dist.Nm)
+	angtsr := ss.ValsTsr(ang.Nm)
 	dist.UnitValsTensor(dtsr, "ActM")
-	distVal := ss.TrainEnv.DistPop.Decode(dtsr.Values)	
+	ang.UnitValsTensor(angtsr, "ActM")
+	distVal := ss.TrainEnv.DistPop.Decode(dtsr.Values)
+	angVal := ss.TrainEnv.AnglePop.Decode(angtsr.Values)
 	targDist := ss.TrainEnv.DistVal
-	distError := math32.Abs(distVal - targDist)
+	targAng := ss.TrainEnv.AngVal
+	distError := mat32.Abs(distVal - targDist)
+	angError := mat32.Abs(angVal - targAng)
+	ss.DistanceError = float64(distError)
+	ss.AngleError = float64(angError)
+
 	//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
 	ss.TrlCosDiff = float64(dist.CosDiff.Cos+ang.CosDiff.Cos) * 0.5
 	//ss.TrlSSE, ss.TrlAvgSSE = x.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
@@ -766,6 +776,8 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	dt.SetCellFloat("PctCor", row, ss.EpcPctCor)
 	dt.SetCellFloat("CosDiff", row, ss.EpcCosDiff)
 	dt.SetCellFloat("PerTrlMSec", row, ss.EpcPerTrlMSec)
+	dt.SetCellFloat("Distance Error", row, ss.DistanceError)
+	dt.SetCellFloat("Angle Error", row, ss.AngleError)
 
 	for _, lnm := range ss.LayStatNms {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
@@ -797,6 +809,8 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 		{"PctCor", etensor.FLOAT64, nil, nil},
 		{"CosDiff", etensor.FLOAT64, nil, nil},
 		{"PerTrlMSec", etensor.FLOAT64, nil, nil},
+		{"Distance Error", etensor.FLOAT64, nil, nil},
+		{"Angle Error", etensor.FLOAT64, nil, nil},
 	}
 	for _, lnm := range ss.LayStatNms {
 		sch = append(sch, etable.Column{lnm + " ActAvg", etensor.FLOAT64, nil, nil})
@@ -817,6 +831,8 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("PctCor", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1) // default plot
 	plt.SetColParams("CosDiff", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 	plt.SetColParams("PerTrlMSec", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
+	plt.SetColParams("Distance Error", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
+	plt.SetColParams("Angle Error", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
 
 	for _, lnm := range ss.LayStatNms {
 		plt.SetColParams(lnm+" ActAvg", eplot.Off, eplot.FixMin, 0, eplot.FixMax, .5)
@@ -847,6 +863,8 @@ func (ss *Sim) LogTstTrl(dt *etable.Table) {
 	dt.SetCellFloat("SSE", row, ss.TrlSSE)
 	dt.SetCellFloat("AvgSSE", row, ss.TrlAvgSSE)
 	dt.SetCellFloat("CosDiff", row, ss.TrlCosDiff)
+	dt.SetCellFloat("Distance Error", row, ss.DistanceError)
+	dt.SetCellFloat("Angle Error", row, ss.AngleError)
 
 	for _, lnm := range ss.LayStatNms {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
@@ -896,6 +914,8 @@ func (ss *Sim) ConfigTstTrlPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("SSE", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 	plt.SetColParams("AvgSSE", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 0)
 	plt.SetColParams("CosDiff", eplot.On, eplot.FixMin, 0, eplot.FixMax, 1)
+	plt.SetColParams("Distance Error", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
+	plt.SetColParams("Angle Error", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
 
 	for _, lnm := range ss.LayStatNms {
 		plt.SetColParams(lnm+" Act", eplot.Off, eplot.FixMin, 0, eplot.FixMax, .5)
