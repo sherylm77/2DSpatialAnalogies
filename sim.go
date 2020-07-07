@@ -501,10 +501,10 @@ func (ss *Sim) TrialStats(accum bool) {
 	angVal := ss.TrainEnv.AnglePop.Decode(angtsr.Values)
 	targDist := ss.TrainEnv.DistVal
 	targAng := ss.TrainEnv.AngVal
-	distError := mat32.Abs(distVal - targDist)
-	angError := mat32.Abs(angVal - targAng)
-	ss.DistanceError = float64(distError)
-	ss.AngleError = float64(angError)
+	distError := math.Abs(float64(distVal - targDist))
+	angError := math.Abs(float64(angVal-targAng))
+	ss.DistanceError = float64(distError) / float64(targDist)
+	ss.AngleError = float64(angError) / float64(targAng+10)
 
 	//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
 	ss.TrlCosDiff = float64(dist.CosDiff.Cos+ang.CosDiff.Cos) * 0.5
