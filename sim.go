@@ -9,7 +9,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"math"
 	"math/rand"
 	"os"
 	"strconv"
@@ -131,10 +130,6 @@ type Sim struct {
 	NZero         int     `inactive:"+" desc:"number of epochs in a row with zero SSE"`
 	DistanceError float64
 	AngleError    float64
-	DistanceValue float64
-	AngleValue    float64
-	TargetDist    float64
-	TargetAng     float64
 
 	// internal state - view:"-"
 	SumErr       float64                     `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
@@ -507,13 +502,9 @@ func (ss *Sim) TrialStats(accum bool) {
 	targDist := ss.TrainEnv.DistVal
 	targAng := ss.TrainEnv.AngVal
 	distError := math.Abs(float64(distVal - targDist))
-	angError := math.Abs(float64(angVal - targAng))
+	angError := math.Abs(float64(angVal-targAng))
 	ss.DistanceError = float64(distError) / float64(targDist)
-	ss.AngleError = float64(angError) / math.Abs(float64(targAng))
-	ss.DistanceValue = float64(distVal)
-	ss.AngleValue = float64(angVal)
-	ss.TargetDist = float64(targDist)
-	ss.TargetAng = float64(targAng)
+	ss.AngleError = float64(angError) / float64(targAng+10)
 
 	//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
 	ss.TrlCosDiff = float64(dist.CosDiff.Cos+ang.CosDiff.Cos) * 0.5
@@ -787,10 +778,6 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	dt.SetCellFloat("PerTrlMSec", row, ss.EpcPerTrlMSec)
 	dt.SetCellFloat("Distance Error", row, ss.DistanceError)
 	dt.SetCellFloat("Angle Error", row, ss.AngleError)
-	dt.SetCellFloat("Distance Value", row, ss.DistanceValue)
-	dt.SetCellFloat("Angle Value", row, ss.AngleValue)
-	dt.SetCellFloat("Target Distance", row, ss.TargetDist)
-	dt.SetCellFloat("Target Angle", row, ss.TargetAng)
 
 	for _, lnm := range ss.LayStatNms {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
