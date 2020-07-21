@@ -26,13 +26,13 @@ type ExEnv struct {
 	MaxDist  int
 	MaxAngle int
 	DistPop  popcode.OneD `desc:"population encoding of distance value"`
-	AnglePop popcode.OneD
+	AnglePop popcode.Ring
 	Point    image.Point `desc:"X,Y coordinates of point"`
 	Point2   image.Point
 	Attn     etensor.Float32 `desc: "attentional layer"`
 	Input    etensor.Float32 `desc:"input state, 2D Size x Size"`
-	// X        etensor.Float32 `desc:"X as a one-hot state 1D Size"` 
-	// Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"` 
+	// X        etensor.Float32 `desc:"X as a one-hot state 1D Size"`
+	// Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"`
 	Distance etensor.Float32
 	Angle    etensor.Float32
 	DistVal  float32
@@ -49,13 +49,13 @@ func (ev *ExEnv) Desc() string { return ev.Dsc }
 func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Size = sz
 	ev.MaxDist = int(float64(sz) * math.Sqrt(2))
-	ev.MaxAngle = 10 //scaled down from 180
+	ev.MaxAngle = 360
 	ev.DistPop.Defaults()
 	ev.DistPop.Min = 0
 	ev.DistPop.Max = float32(ev.MaxDist) * 1.1
 	ev.AnglePop.Defaults()
-	ev.AnglePop.Min = -float32(ev.MaxAngle) * 1.1
-	ev.AnglePop.Max = float32(ev.MaxAngle) * 1.1
+	ev.AnglePop.Min = 0
+	ev.AnglePop.Max = 360
 	ev.Trial.Max = ntrls
 	ev.Input.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
@@ -125,24 +125,30 @@ func (ev *ExEnv) Init(run int) {
 
 // NewPoint generates a new point and sets state accordingly
 func (ev *ExEnv) NewPoint() {
-	ev.Point.X = rand.Intn(ev.Size)
-	ev.Point.Y = rand.Intn(ev.Size)
+	ev.Point.X = 4
+	ev.Point.Y = 4
 	ev.Point2.X = rand.Intn(ev.Size)
 	ev.Point2.Y = rand.Intn(ev.Size)
-	dist := math.Hypot(float64(ev.Point.X-ev.Point2.X), float64(ev.Point.Y-ev.Point2.Y))
-	ang := float64(ev.MaxAngle) * (math.Atan2(float64(ev.Point2.Y-ev.Point.Y), float64(ev.Point2.X-ev.Point.X)) / math.Pi)
-	// fmt.Printf("ang: %v\n", ang)
+	xDist := ev.Point2.X - ev.Point.X
+	yDist := ev.Point2.Y - ev.Point.Y
+	dist := math.Hypot(float64(xDist), float64(yDist))
+	ang0 := 0.0
+	ang360 := 0.0
+	if xDist >= 0 && yDist >= 0 {
+		ang0 = math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi
+	} else if xDist < 0 && yDist >= 0 {
+		ang0 = (180 + math.Atan2(float64(yDist), float64(xDist))) * 180 / math.Pi
+	} else if xDist >= 0 && yDist < 0 {
+		ang360 = math.Abs(math.Atan2(float64(yDist), float64(xDist))) * 180 / math.Pi
+	} else { //xDist < 0 and yDist < 0
+		ang360 = (180 - math.Atan2(float64(yDist), float64(xDist))) * 180 / math.Pi
+	}
+	ang := ang0 + ang360
 	ev.Input.SetZeros()
 	ev.Attn.SetZeros()
 	ev.Input.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.Input.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
 	ev.Attn.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
-	// ev.X.SetZeros()
-	// ev.X.SetFloat([]int{ev.Point.X}, 1)
-	// ev.X.SetFloat([]int{ev.Point2.X}, 1)
-	// ev.Y.SetZeros()
-	// ev.Y.SetFloat([]int{ev.Point.Y}, 1)
-	// ev.Y.SetFloat([]int{ev.Point2.Y}, 1)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.MaxDist)
 	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.MaxAngle)
 	ev.DistVal = float32(dist)
