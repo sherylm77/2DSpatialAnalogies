@@ -127,6 +127,7 @@ type Sim struct {
 	EpcPctCor     float64 `inactive:"+" desc:"1 - last epoch's average TrlErr"`
 	EpcCosDiff    float64 `inactive:"+" desc:"last epoch's average cosine difference for output layer (a normalized error measure, maximum of 1 when the minus phase exactly matches the plus)"`
 	EpcDistError  float64
+	EpcAngError   float64
 	EpcPerTrlMSec float64 `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
 	FirstZero     int     `inactive:"+" desc:"epoch at when SSE first went to zero"`
 	NZero         int     `inactive:"+" desc:"number of epochs in a row with zero SSE"`
@@ -139,6 +140,7 @@ type Sim struct {
 	SumAvgSSE    float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
 	SumCosDiff   float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
 	SumDistError float64
+	SumAngError  float64
 	Win          *gi.Window                  `view:"-" desc:"main GUI window"`
 	NetView      *netview.NetView            `view:"-" desc:"the network viewer"`
 	ToolBar      *gi.ToolBar                 `view:"-" desc:"the master toolbar"`
@@ -506,9 +508,15 @@ func (ss *Sim) TrialStats(accum bool) {
 	targDist := ss.TrainEnv.DistVal
 	targAng := ss.TrainEnv.AngVal
 	distError := math.Abs(float64(distVal - targDist))
-	angError := math.Abs(float64(angVal - targAng)) // fix angle error
+	angError1 := mat32.Abs(angVal - targAng)
+	angError2 := 0
+	if targAng < 180 {
+		angError2 = int(mat32.Abs((360 + targAng) - angVal))
+	} else {
+		angError2 = int(mat32.Abs((targAng - 360) - angVal))
+	}
 	ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
-	ss.AngleError = float64(angError) / float64(ss.TrainEnv.MaxAngle)
+	ss.AngleError = float64(mat32.Min(angError1, float32(angError2)))
 
 	//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
 	ss.TrlCosDiff = float64(dist.CosDiff.Cos+ang.CosDiff.Cos) * 0.5
@@ -531,6 +539,7 @@ func (ss *Sim) TrialStats(accum bool) {
 		ss.SumAvgSSE += ss.TrlAvgSSE
 		ss.SumCosDiff += ss.TrlCosDiff
 		ss.SumDistError += ss.DistanceError
+		ss.SumAngError += ss.AngleError
 	}
 }
 
@@ -756,6 +765,7 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	ss.EpcPctCor = 1 - ss.EpcPctErr
 	ss.EpcCosDiff = ss.SumCosDiff / nt
 	ss.EpcDistError = ss.SumDistError / nt
+	ss.EpcAngError = ss.SumAngError / nt
 	ss.SumCosDiff = 0
 	if ss.FirstZero < 0 && ss.EpcPctErr == 0 {
 		ss.FirstZero = epc
@@ -783,6 +793,7 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	dt.SetCellFloat("CosDiff", row, ss.EpcCosDiff)
 	dt.SetCellFloat("PerTrlMSec", row, ss.EpcPerTrlMSec)
 	dt.SetCellFloat("EpcDistError", row, ss.EpcDistError)
+	dt.SetCellFloat("EpcAngError", row, ss.EpcAngError)
 
 	for _, lnm := range ss.LayStatNms {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
@@ -815,6 +826,7 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 		{"CosDiff", etensor.FLOAT64, nil, nil},
 		{"PerTrlMSec", etensor.FLOAT64, nil, nil},
 		{"EpcDistError", etensor.FLOAT64, nil, nil},
+		{"EpcAngError", etensor.FLOAT64, nil, nil},
 	}
 	for _, lnm := range ss.LayStatNms {
 		sch = append(sch, etable.Column{lnm + " ActAvg", etensor.FLOAT64, nil, nil})
@@ -836,6 +848,7 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("CosDiff", eplot.Off, eplot.FixMin, 0, eplot.FixMax, 1)
 	plt.SetColParams("PerTrlMSec", eplot.Off, eplot.FixMin, 0, eplot.FloatMax, 0)
 	plt.SetColParams("EpcDistError", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
+	plt.SetColParams("EpcAngError", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
 
 	for _, lnm := range ss.LayStatNms {
 		plt.SetColParams(lnm+" ActAvg", eplot.Off, eplot.FixMin, 0, eplot.FixMax, .5)
