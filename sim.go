@@ -135,6 +135,8 @@ type Sim struct {
 	AngleError    float64
 
 	// internal state - view:"-"
+	TargAng        float32 `inactive:"+" desc:"actual angle"`
+	GuessAng       float32 `inactive:"+" desc:"guessed angle"`
 	SumErr       float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
 	SumSSE       float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
 	SumAvgSSE    float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
@@ -517,7 +519,8 @@ func (ss *Sim) TrialStats(accum bool) {
 	}
 	ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
 	ss.AngleError = float64(mat32.Min(angError1, float32(angError2)))
-
+	ss.TargAng = targAng
+	ss.GuessAng = angVal
 	//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
 	ss.TrlCosDiff = float64(dist.CosDiff.Cos+ang.CosDiff.Cos) * 0.5
 	//ss.TrlSSE, ss.TrlAvgSSE = x.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
