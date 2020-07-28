@@ -135,8 +135,8 @@ type Sim struct {
 	AngleError    float64
 
 	// internal state - view:"-"
-	TargAng        float32 `inactive:"+" desc:"actual angle"`
-	GuessAng       float32 `inactive:"+" desc:"guessed angle"`
+	TargAng      float32 `inactive:"+" desc:"actual angle"`
+	GuessAng     float32 `inactive:"+" desc:"guessed angle"`
 	SumErr       float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
 	SumSSE       float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
 	SumAvgSSE    float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
@@ -242,8 +242,8 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	hid := net.AddLayer2D("Hidden", 10, 10, emer.Hidden)
 	//x := net.AddLayer2D("X", 1, ss.Size, emer.Target)
 	//y := net.AddLayer2D("Y", 1, ss.Size, emer.Target)
-	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.MaxDist, emer.Target)
-	ang := net.AddLayer2D("Angle", 1, ss.TrainEnv.MaxAngle, emer.Target)
+	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.NDistUnits, emer.Target)
+	ang := net.AddLayer2D("Angle", 1, ss.TrainEnv.NAngleUnits, emer.Target)
 
 	//x.SetClass("Output")
 	//y.SetClass("Output")
@@ -511,14 +511,14 @@ func (ss *Sim) TrialStats(accum bool) {
 	targAng := ss.TrainEnv.AngVal
 	distError := math.Abs(float64(distVal - targDist))
 	angError1 := mat32.Abs(angVal - targAng)
-	angError2 := 0
+	angError2 := float32(0)
 	if targAng < 180 {
-		angError2 = int(mat32.Abs((360 + targAng) - angVal))
+		angError2 = mat32.Abs((360 + targAng) - angVal)
 	} else {
-		angError2 = int(mat32.Abs((targAng - 360) - angVal))
+		angError2 = mat32.Abs((targAng - 360) - angVal)
 	}
 	ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
-	ss.AngleError = float64(mat32.Min(angError1, float32(angError2)))
+	ss.AngleError = float64(mat32.Min(angError1, float32(angError2))) / 360
 	ss.TargAng = targAng
 	ss.GuessAng = angVal
 	//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
@@ -767,9 +767,11 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	ss.SumErr = 0
 	ss.EpcPctCor = 1 - ss.EpcPctErr
 	ss.EpcCosDiff = ss.SumCosDiff / nt
-	ss.EpcDistError = ss.SumDistError / nt
-	ss.EpcAngError = ss.SumAngError / nt
 	ss.SumCosDiff = 0
+	ss.EpcDistError = ss.SumDistError / nt
+	ss.SumDistError = 0
+	ss.EpcAngError = ss.SumAngError / nt
+	ss.SumAngError = 0
 	if ss.FirstZero < 0 && ss.EpcPctErr == 0 {
 		ss.FirstZero = epc
 	}
