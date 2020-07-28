@@ -20,17 +20,19 @@ import (
 // It can be used as a starting point for writing your own Env, without
 // having much existing code to rewrite.
 type ExEnv struct {
-	Nm       string `desc:"name of this environment"`
-	Dsc      string `desc:"description of this environment"`
-	Size     int    `desc:"size of each dimension in 2D input"`
-	MaxDist  int
-	MaxAngle int
-	DistPop  popcode.OneD `desc:"population encoding of distance value"`
-	AnglePop popcode.Ring
-	Point    image.Point `desc:"X,Y coordinates of point"`
-	Point2   image.Point
-	Attn     etensor.Float32 `desc: "attentional layer"`
-	Input    etensor.Float32 `desc:"input state, 2D Size x Size"`
+	Nm          string `desc:"name of this environment"`
+	Dsc         string `desc:"description of this environment"`
+	Size        int    `desc:"size of each dimension in 2D input"`
+	MaxDist     int
+	MaxAngle    int
+	NAngleUnits int
+	NDistUnits  int
+	DistPop     popcode.OneD `desc:"population encoding of distance value"`
+	AnglePop    popcode.Ring
+	Point       image.Point `desc:"X,Y coordinates of point"`
+	Point2      image.Point
+	Attn        etensor.Float32 `desc: "attentional layer"`
+	Input       etensor.Float32 `desc:"input state, 2D Size x Size"`
 	// X        etensor.Float32 `desc:"X as a one-hot state 1D Size"`
 	// Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"`
 	Distance etensor.Float32
@@ -50,8 +52,10 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Size = sz
 	ev.MaxDist = int(float64(sz) * math.Sqrt(2))
 	ev.MaxAngle = 360
+	ev.NAngleUnits = 24
+	ev.NDistUnits = 10
 	ev.DistPop.Defaults()
-	ev.DistPop.Min = 0
+	ev.DistPop.Min = float32(ev.MaxDist) * -0.1
 	ev.DistPop.Max = float32(ev.MaxDist) * 1.1
 	ev.AnglePop.Defaults()
 	ev.AnglePop.Min = 0
@@ -61,8 +65,8 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	// ev.X.SetShape([]int{sz}, nil, []string{"X"})
 	// ev.Y.SetShape([]int{sz}, nil, []string{"Y"})
-	ev.Distance.SetShape([]int{ev.MaxDist}, nil, []string{"Distance"})
-	ev.Angle.SetShape([]int{ev.MaxAngle}, nil, []string{"Angle"})
+	ev.Distance.SetShape([]int{ev.NDistUnits}, nil, []string{"Distance"})
+	ev.Angle.SetShape([]int{ev.NAngleUnits}, nil, []string{"Angle"})
 }
 
 func (ev *ExEnv) Validate() error {
@@ -127,8 +131,13 @@ func (ev *ExEnv) Init(run int) {
 func (ev *ExEnv) NewPoint() {
 	ev.Point.X = 4
 	ev.Point.Y = 4
-	ev.Point2.X = rand.Intn(ev.Size)
-	ev.Point2.Y = rand.Intn(ev.Size)
+	for {
+		ev.Point2.X = rand.Intn(ev.Size)
+		ev.Point2.Y = rand.Intn(ev.Size)
+		if ev.Point2 != ev.Point {
+			break
+		}
+	}
 	xDist := ev.Point2.X - ev.Point.X
 	yDist := ev.Point2.Y - ev.Point.Y
 	dist := math.Hypot(float64(xDist), float64(yDist))
@@ -136,7 +145,7 @@ func (ev *ExEnv) NewPoint() {
 	ang360 := 0.0
 	if xDist >= 0 && yDist >= 0 {
 		ang0 = math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi
-	} else if xDist < 0 && yDist >= 0 {
+	} else if xDist < 0 && yDist > 0 {
 		ang0 = 180 + (math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi)
 	} else if xDist >= 0 && yDist < 0 {
 		ang360 = math.Abs(math.Atan2(float64(yDist), float64(xDist))) * 180 / math.Pi
@@ -149,8 +158,8 @@ func (ev *ExEnv) NewPoint() {
 	ev.Input.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.Input.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
 	ev.Attn.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
-	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.MaxDist)
-	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.MaxAngle)
+	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.NDistUnits)
+	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.NAngleUnits)
 	ev.DistVal = float32(dist)
 	ev.AngVal = float32(ang)
 }
