@@ -137,11 +137,11 @@ func (ev *ExEnv) NewPoint() {
 	if xDist >= 0 && yDist >= 0 {
 		ang0 = math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi
 	} else if xDist < 0 && yDist >= 0 {
-		ang0 = (180 + math.Atan2(float64(yDist), float64(xDist))) * 180 / math.Pi
+		ang0 = 180 + (math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi)
 	} else if xDist >= 0 && yDist < 0 {
 		ang360 = math.Abs(math.Atan2(float64(yDist), float64(xDist))) * 180 / math.Pi
 	} else { //xDist < 0 and yDist < 0
-		ang360 = (180 - math.Atan2(float64(yDist), float64(xDist))) * 180 / math.Pi
+		ang360 = 180 - (math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi)
 	}
 	ang := ang0 + ang360
 	ev.Input.SetZeros()
