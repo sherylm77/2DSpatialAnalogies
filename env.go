@@ -33,6 +33,7 @@ type ExEnv struct {
 	Point2      image.Point
 	Attn        etensor.Float32 `desc: "attentional layer"`
 	Input       etensor.Float32 `desc:"input state, 2D Size x Size"`
+	AlloInput	etensor.Float32 `desc:"Allocentric input layer"`
 	// X        etensor.Float32 `desc:"X as a one-hot state 1D Size"`
 	// Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"`
 	Distance etensor.Float32
@@ -63,6 +64,7 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Trial.Max = ntrls
 	ev.Input.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
+	ev.AlloInput.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	// ev.X.SetShape([]int{sz}, nil, []string{"X"})
 	// ev.Y.SetShape([]int{sz}, nil, []string{"Y"})
 	ev.Distance.SetShape([]int{ev.NDistUnits}, nil, []string{"Distance"})
@@ -84,6 +86,7 @@ func (ev *ExEnv) States() env.Elements {
 	els := env.Elements{
 		{"Input", []int{ev.Size, ev.Size}, []string{"Y", "X"}},
 		{"Attn", []int{ev.Size, ev.Size}, []string{"Y", "X"}},
+		{"AlloInput", []int{ev.Size, ev.Size}, []string{"Y", "X"}},
 		// {"X", []int{ev.Size}, []string{"X"}},
 		// {"Y", []int{ev.Size}, []string{"Y"}},
 		{"Distance", []int{ev.Size}, []string{"Distance"}},
@@ -98,6 +101,8 @@ func (ev *ExEnv) State(element string) etensor.Tensor {
 		return &ev.Input
 	case "Attn":
 		return &ev.Attn
+	case "AlloInput":
+		return &ev.AlloInput
 	case "Distance":
 		return &ev.Distance
 	case "Angle":
@@ -155,9 +160,12 @@ func (ev *ExEnv) NewPoint() {
 	ang := ang0 + ang360
 	ev.Input.SetZeros()
 	ev.Attn.SetZeros()
+	//ev.AlloInput.SetZeroes()
 	ev.Input.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.Input.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
 	ev.Attn.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
+	ev.AlloInput.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
+	ev.AlloInput.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.NDistUnits)
 	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.NAngleUnits)
 	ev.DistVal = float32(dist)
