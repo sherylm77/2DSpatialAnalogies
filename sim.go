@@ -240,6 +240,7 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	inp := net.AddLayer2D("Input", ss.Size, ss.Size, emer.Input)
 	attn := net.AddLayer2D("Attn", ss.Size, ss.Size, emer.Input)
 	hid := net.AddLayer2D("Hidden", 10, 10, emer.Hidden)
+	alloinput := net.AddLayer2D("AlloInput", ss.Size, ss.Size, emer.Input)
 	//x := net.AddLayer2D("X", 1, ss.Size, emer.Target)
 	//y := net.AddLayer2D("Y", 1, ss.Size, emer.Target)
 	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.NDistUnits, emer.Target)
@@ -261,6 +262,7 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 
 	net.ConnectLayers(inp, hid, full, emer.Forward)
 	net.ConnectLayers(attn, hid, full, emer.Forward)
+	net.ConnectLayers(alloinput, hid, full, emer.Forward)
 	//net.BidirConnectLayers(hid, x, full)
 	//net.BidirConnectLayers(hid, y, full)
 	net.BidirConnectLayers(hid, dist, full)
