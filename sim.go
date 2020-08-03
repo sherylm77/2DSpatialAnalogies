@@ -237,10 +237,11 @@ func (ss *Sim) ConfigEnv() {
 
 func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.InitName(net, "EnvSim")
-	inp := net.AddLayer2D("Input", ss.Size, ss.Size, emer.Input)
+	inp := net.AddLayer2D("Input", ss.Size*2-1, ss.Size*2-1, emer.Target)
 	attn := net.AddLayer2D("Attn", ss.Size, ss.Size, emer.Input)
 	hid := net.AddLayer2D("Hidden", 10, 10, emer.Hidden)
 	alloinput := net.AddLayer2D("AlloInput", ss.Size, ss.Size, emer.Input)
+	allohid := net.AddLayer2D("AlloHidden", 10, 10, emer.Hidden)
 	//x := net.AddLayer2D("X", 1, ss.Size, emer.Target)
 	//y := net.AddLayer2D("Y", 1, ss.Size, emer.Target)
 	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.NDistUnits, emer.Target)
@@ -255,6 +256,7 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	// default is Above, YAlign = Front, XAlign = Center
 	//y.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "X", XAlign: relpos.Left, Space: 4})
 	attn.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Input", YAlign: relpos.Front, Space: 4})
+	allohid.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "AlloInput", YAlign: relpos.Front, Space: 4})
 
 	// note: see emergent/prjn module for all the options on how to connect
 	// NewFull returns a new prjn.Full connectivity pattern
@@ -262,9 +264,10 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 
 	net.ConnectLayers(inp, hid, full, emer.Forward)
 	net.ConnectLayers(attn, hid, full, emer.Forward)
-	net.ConnectLayers(alloinput, hid, full, emer.Forward)
+	net.ConnectLayers(alloinput, allohid, full, emer.Forward)
 	//net.BidirConnectLayers(hid, x, full)
 	//net.BidirConnectLayers(hid, y, full)
+	net.BidirConnectLayers(allohid, inp, full)
 	net.BidirConnectLayers(hid, dist, full)
 	net.BidirConnectLayers(hid, ang, full)
 
@@ -401,7 +404,7 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	lays := []string{"Input", "Attn", "Distance", "Angle"}
+	lays := []string{"Input", "Attn", "AlloInput", "Distance", "Angle"}
 	for _, lnm := range lays {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
 		pats := en.State(ly.Nm)

@@ -31,9 +31,10 @@ type ExEnv struct {
 	AnglePop    popcode.Ring
 	Point       image.Point `desc:"X,Y coordinates of point"`
 	Point2      image.Point
+	Point3      image.Point
 	Attn        etensor.Float32 `desc: "attentional layer"`
 	Input       etensor.Float32 `desc:"input state, 2D Size x Size"`
-	AlloInput	etensor.Float32 `desc:"Allocentric input layer"`
+	AlloInput   etensor.Float32 `desc:"Allocentric input layer"`
 	// X        etensor.Float32 `desc:"X as a one-hot state 1D Size"`
 	// Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"`
 	Distance etensor.Float32
@@ -62,7 +63,7 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.AnglePop.Min = 0
 	ev.AnglePop.Max = 360
 	ev.Trial.Max = ntrls
-	ev.Input.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
+	ev.Input.SetShape([]int{sz*2 - 1, sz*2 - 1}, nil, []string{"Y", "X"})
 	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	ev.AlloInput.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	// ev.X.SetShape([]int{sz}, nil, []string{"X"})
@@ -134,8 +135,8 @@ func (ev *ExEnv) Init(run int) {
 
 // NewPoint generates a new point and sets state accordingly
 func (ev *ExEnv) NewPoint() {
-	ev.Point.X = 4
-	ev.Point.Y = 4
+	ev.Point.X = rand.Intn(ev.Size)
+	ev.Point.Y = rand.Intn(ev.Size)
 	for {
 		ev.Point2.X = rand.Intn(ev.Size)
 		ev.Point2.Y = rand.Intn(ev.Size)
@@ -153,19 +154,25 @@ func (ev *ExEnv) NewPoint() {
 	} else if xDist < 0 && yDist >= 0 {
 		ang0 = math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi
 	} else if xDist >= 0 && yDist < 0 {
-		ang360 = 360 - ( math.Abs(math.Atan2(float64(yDist), float64(xDist))) * 180 / math.Pi )
-	}else { //xDist < 0 and yDist < 0
+		ang360 = 360 - (math.Abs(math.Atan2(float64(yDist), float64(xDist))) * 180 / math.Pi)
+	} else { //xDist < 0 and yDist < 0
 		ang360 = 360 + (math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi)
 	}
 	ang := ang0 + ang360
+
+	ev.Point3.X = ev.Size - 1 + xDist
+	ev.Point3.Y = ev.Size - 1 + yDist
+
 	ev.Input.SetZeros()
 	ev.Attn.SetZeros()
-	//ev.AlloInput.SetZeroes()
-	ev.Input.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
-	ev.Input.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
+	ev.AlloInput.SetZeros()
+	// ev.Input.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
+	// ev.Input.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
 	ev.Attn.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.AlloInput.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.AlloInput.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
+	ev.Input.SetFloat([]int{ev.Size - 1, ev.Size - 1}, 1) //center point of input
+	ev.Input.SetFloat([]int{ev.Point3.Y, ev.Point3.X}, 1)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.NDistUnits)
 	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.NAngleUnits)
 	ev.DistVal = float32(dist)
