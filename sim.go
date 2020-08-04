@@ -506,6 +506,8 @@ func (ss *Sim) TrialStats(accum bool) {
 	//y := ss.Net.LayerByName("Y").(leabra.LeabraLayer).AsLeabra()
 	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
 	ang := ss.Net.LayerByName("Angle").(leabra.LeabraLayer).AsLeabra()
+	inp := ss.Net.LayerByName("Input").(leabra.LeabraLayer).AsLeabra()
+
 	dtsr := ss.ValsTsr(dist.Nm)
 	angtsr := ss.ValsTsr(ang.Nm)
 	dist.UnitValsTensor(dtsr, "ActM")
@@ -522,12 +524,13 @@ func (ss *Sim) TrialStats(accum bool) {
 	} else {
 		angError2 = mat32.Abs((targAng - 360) - angVal)
 	}
+
 	ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
 	ss.AngleError = float64(mat32.Min(angError1, float32(angError2))) / 360
 	ss.TargAng = targAng
 	ss.GuessAng = angVal
 	//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
-	ss.TrlCosDiff = float64(dist.CosDiff.Cos+ang.CosDiff.Cos) * 0.5
+	ss.TrlCosDiff = float64(dist.CosDiff.Cos+ang.CosDiff.Cos+inp.CosDiff.Cos) / 3
 	//ss.TrlSSE, ss.TrlAvgSSE = x.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
 	ss.TrlSSE, ss.TrlAvgSSE = dist.MSE(0.5)
 	//ys, ya := y.MSE(0.5)
@@ -536,6 +539,9 @@ func (ss *Sim) TrialStats(accum bool) {
 	ss.TrlSSE += ang_s
 	//ss.TrlAvgSSE = 0.5 * (ss.TrlAvgSSE + ya)
 	ss.TrlAvgSSE = 0.5 * (ss.TrlAvgSSE + ang_a)
+	inp_s, inp_a := inp.MSE(0.5)
+	ss.TrlSSE += inp_s
+	ss.TrlAvgSSE = (2*ss.TrlAvgSSE + inp_a) / 3
 	if ss.TrlSSE > 0 {
 		ss.TrlErr = 1
 	} else {
