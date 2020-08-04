@@ -81,6 +81,10 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi": "1.4",
 				}},
+			{Sel: "#Input", Desc: "output has higher inhib because localist",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "2.6",
+				}},
 		},
 	}},
 }
@@ -261,14 +265,14 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	allohid.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "AlloInput", YAlign: relpos.Front, Space: 4})
 	hid.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input", YAlign: relpos.Front, XAlign: relpos.Left})
 	attn.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Hidden", YAlign: relpos.Front, XAlign: relpos.Left})
-	dist.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Attn", YAlign: relpos.Front, XAlign: relpos.Middle})
-	ang.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Distance", YAlign: relpos.Front, XAlign: relpos.Middle})
+	dist.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Attn", YAlign: relpos.Front, XAlign: relpos.Middle, Space: 1})
+	ang.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Distance", XAlign: relpos.Middle, Space: 4, Scale: 0.5})
 	// note: see emergent/prjn module for all the options on how to connect
 	// NewFull returns a new prjn.Full connectivity pattern
 	full := prjn.NewFull()
 
 	net.ConnectLayers(inp, hid, full, emer.Forward)
-	net.ConnectLayers(attn, hid, full, emer.Forward)
+	net.ConnectLayers(attn, allohid, full, emer.Forward)
 	net.ConnectLayers(alloinput, allohid, full, emer.Forward)
 	//net.BidirConnectLayers(hid, x, full)
 	//net.BidirConnectLayers(hid, y, full)
