@@ -255,9 +255,14 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	// use this to position layers relative to each other
 	// default is Above, YAlign = Front, XAlign = Center
 	//y.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "X", XAlign: relpos.Left, Space: 4})
-	attn.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Input", YAlign: relpos.Front, Space: 4})
-	allohid.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "AlloInput", YAlign: relpos.Front, Space: 4})
-
+	//attn.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Input", YAlign: relpos.Front, Space: 4})
+	//allohid.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Hidden", YAlign: relpos.Front, Space: 4})
+	alloinput.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Input", YAlign: relpos.Front, Space: 2})
+	allohid.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "AlloInput", YAlign: relpos.Front, Space: 4})
+	hid.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input", YAlign: relpos.Front, XAlign: relpos.Left})
+	attn.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Hidden", YAlign: relpos.Front, XAlign: relpos.Left})
+	dist.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Attn", YAlign: relpos.Front, XAlign: relpos.Middle})
+	ang.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Distance", YAlign: relpos.Front, XAlign: relpos.Middle})
 	// note: see emergent/prjn module for all the options on how to connect
 	// NewFull returns a new prjn.Full connectivity pattern
 	full := prjn.NewFull()
