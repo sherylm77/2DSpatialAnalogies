@@ -81,7 +81,7 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi": "1.4",
 				}},
-			{Sel: "#Input", Desc: "output has higher inhib because localist",
+			{Sel: "#EgoInput", Desc: "output has higher inhib because localist",
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi": "2.6",
 				}},
@@ -191,7 +191,7 @@ func (ss *Sim) New() {
 	ss.TrainUpdt = leabra.AlphaCycle
 	ss.TestUpdt = leabra.Cycle
 	ss.TestInterval = 5
-	ss.LayStatNms = []string{"Input"}
+	ss.LayStatNms = []string{"EgoInput"}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -241,11 +241,11 @@ func (ss *Sim) ConfigEnv() {
 
 func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.InitName(net, "EnvSim")
-	inp := net.AddLayer2D("Input", ss.Size*2-1, ss.Size*2-1, emer.Target)
+	inp := net.AddLayer2D("EgoInput", ss.Size*2-1, ss.Size*2-1, emer.Target)
 	attn := net.AddLayer2D("Attn", ss.Size, ss.Size, emer.Input)
 	alloinput := net.AddLayer2D("AlloInput", ss.Size, ss.Size, emer.Input)
 	allohid := net.AddLayer2D("AlloHidden", 10, 10, emer.Hidden)
-	hid := net.AddLayer2D("Hidden", 10, 10, emer.Hidden)
+	egohid := net.AddLayer2D("EgoHidden", 10, 10, emer.Hidden)
 	//x := net.AddLayer2D("X", 1, ss.Size, emer.Target)
 	//y := net.AddLayer2D("Y", 1, ss.Size, emer.Target)
 	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.NDistUnits, emer.Target)
@@ -259,26 +259,26 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	// use this to position layers relative to each other
 	// default is Above, YAlign = Front, XAlign = Center
 	//y.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "X", XAlign: relpos.Left, Space: 4})
-	//attn.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Input", YAlign: relpos.Front, Space: 4})
-	//allohid.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Hidden", YAlign: relpos.Front, Space: 4})
-	alloinput.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Input", YAlign: relpos.Front, Space: 2})
+	//attn.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "EgoInput", YAlign: relpos.Front, Space: 4})
+	//allohid.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "EgoHidden", YAlign: relpos.Front, Space: 4})
+	alloinput.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "EgoInput", YAlign: relpos.Front, Space: 2})
 	allohid.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "AlloInput", YAlign: relpos.Front, Space: 4})
-	hid.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input", YAlign: relpos.Front, XAlign: relpos.Left})
-	attn.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Hidden", YAlign: relpos.Front, XAlign: relpos.Left})
+	egohid.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "EgoInput", YAlign: relpos.Front, XAlign: relpos.Left})
+	attn.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "EgoHidden", YAlign: relpos.Front, XAlign: relpos.Left})
 	dist.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Attn", YAlign: relpos.Front, XAlign: relpos.Middle, Space: 1})
 	ang.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Distance", XAlign: relpos.Middle, Space: 4, Scale: 0.5})
 	// note: see emergent/prjn module for all the options on how to connect
 	// NewFull returns a new prjn.Full connectivity pattern
 	full := prjn.NewFull()
 
-	net.ConnectLayers(inp, hid, full, emer.Forward)
+	net.ConnectLayers(inp, egohid, full, emer.Forward)
 	net.ConnectLayers(attn, allohid, full, emer.Forward)
 	net.ConnectLayers(alloinput, allohid, full, emer.Forward)
-	//net.BidirConnectLayers(hid, x, full)
-	//net.BidirConnectLayers(hid, y, full)
+	//net.BidirConnectLayers(egohid, x, full)
+	//net.BidirConnectLayers(egohid, y, full)
 	net.BidirConnectLayers(allohid, inp, full)
-	net.BidirConnectLayers(hid, dist, full)
-	net.BidirConnectLayers(hid, ang, full)
+	net.BidirConnectLayers(egohid, dist, full)
+	net.BidirConnectLayers(egohid, ang, full)
 
 	// note: if you wanted to change a layer type from e.g., Target to Compare, do this:
 	// out.SetType(emer.Compare)
@@ -413,7 +413,7 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	lays := []string{"Input", "Attn", "AlloInput", "Distance", "Angle"}
+	lays := []string{"EgoInput", "Attn", "AlloInput", "Distance", "Angle"}
 	for _, lnm := range lays {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
 		pats := en.State(ly.Nm)
@@ -515,7 +515,7 @@ func (ss *Sim) TrialStats(accum bool) {
 	//y := ss.Net.LayerByName("Y").(leabra.LeabraLayer).AsLeabra()
 	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
 	ang := ss.Net.LayerByName("Angle").(leabra.LeabraLayer).AsLeabra()
-	inp := ss.Net.LayerByName("Input").(leabra.LeabraLayer).AsLeabra()
+	inp := ss.Net.LayerByName("EgoInput").(leabra.LeabraLayer).AsLeabra()
 
 	dtsr := ss.ValsTsr(dist.Nm)
 	angtsr := ss.ValsTsr(ang.Nm)
@@ -907,7 +907,7 @@ func (ss *Sim) LogTstTrl(dt *etable.Table) {
 
 	for _, lnm := range ss.LayStatNms {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
-		vt := ss.ValsTsr("Input")
+		vt := ss.ValsTsr("EgoInput")
 		ly.UnitValsTensor(vt, "Act")
 		dt.SetCellTensor(ly.Nm+" Act", row, vt)
 	}
