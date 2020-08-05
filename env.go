@@ -33,7 +33,7 @@ type ExEnv struct {
 	Point2      image.Point
 	Point3      image.Point
 	Attn        etensor.Float32 `desc: "attentional layer"`
-	Input       etensor.Float32 `desc:"input state, 2D Size x Size"`
+	EgoInput    etensor.Float32 `desc:"Egocentric input state, 2D Size x Size"`
 	AlloInput   etensor.Float32 `desc:"Allocentric input layer"`
 	// X        etensor.Float32 `desc:"X as a one-hot state 1D Size"`
 	// Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"`
@@ -63,7 +63,7 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.AnglePop.Min = 0
 	ev.AnglePop.Max = 360
 	ev.Trial.Max = ntrls
-	ev.Input.SetShape([]int{sz*2 - 1, sz*2 - 1}, nil, []string{"Y", "X"})
+	ev.EgoInput.SetShape([]int{sz*2 - 1, sz*2 - 1}, nil, []string{"Y", "X"})
 	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	ev.AlloInput.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	// ev.X.SetShape([]int{sz}, nil, []string{"X"})
@@ -85,7 +85,7 @@ func (ev *ExEnv) Counters() []env.TimeScales {
 
 func (ev *ExEnv) States() env.Elements {
 	els := env.Elements{
-		{"Input", []int{ev.Size, ev.Size}, []string{"Y", "X"}},
+		{"EgoInput", []int{ev.Size, ev.Size}, []string{"Y", "X"}},
 		{"Attn", []int{ev.Size, ev.Size}, []string{"Y", "X"}},
 		{"AlloInput", []int{ev.Size, ev.Size}, []string{"Y", "X"}},
 		// {"X", []int{ev.Size}, []string{"X"}},
@@ -98,8 +98,8 @@ func (ev *ExEnv) States() env.Elements {
 
 func (ev *ExEnv) State(element string) etensor.Tensor {
 	switch element {
-	case "Input":
-		return &ev.Input
+	case "EgoInput":
+		return &ev.EgoInput
 	case "Attn":
 		return &ev.Attn
 	case "AlloInput":
@@ -163,16 +163,16 @@ func (ev *ExEnv) NewPoint() {
 	ev.Point3.X = ev.Size - 1 + xDist
 	ev.Point3.Y = ev.Size - 1 + yDist
 
-	ev.Input.SetZeros()
+	ev.EgoInput.SetZeros()
 	ev.Attn.SetZeros()
 	ev.AlloInput.SetZeros()
-	// ev.Input.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
-	// ev.Input.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
+	// ev.EgoInput.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
+	// ev.EgoInput.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
 	ev.Attn.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.AlloInput.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.AlloInput.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
-	ev.Input.SetFloat([]int{ev.Size - 1, ev.Size - 1}, 1) //center point of input
-	ev.Input.SetFloat([]int{ev.Point3.Y, ev.Point3.X}, 1)
+	ev.EgoInput.SetFloat([]int{ev.Size - 1, ev.Size - 1}, 1) //center point of input
+	ev.EgoInput.SetFloat([]int{ev.Point3.Y, ev.Point3.X}, 1)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.NDistUnits)
 	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.NAngleUnits)
 	ev.DistVal = float32(dist)
