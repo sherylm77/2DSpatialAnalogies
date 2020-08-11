@@ -65,6 +65,7 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.AnglePop.Defaults()
 	ev.AnglePop.Min = 0
 	ev.AnglePop.Max = 360
+	
 	//	ev.AttnPop.Max =
 	//	ev.AttnPop.Min =
 	//	ev.AlloInputPop.Min =
