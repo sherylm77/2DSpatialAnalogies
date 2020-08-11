@@ -13,6 +13,7 @@ import (
 	"github.com/emer/emergent/env"
 	"github.com/emer/emergent/popcode"
 	"github.com/emer/etable/etensor"
+	"github.com/goki/mat32"
 )
 
 // ExEnv is an example environment, that sets a single input point in a 2D
@@ -20,24 +21,24 @@ import (
 // It can be used as a starting point for writing your own Env, without
 // having much existing code to rewrite.
 type ExEnv struct {
-	Nm          string `desc:"name of this environment"`
-	Dsc         string `desc:"description of this environment"`
-	Size        int    `desc:"size of each dimension in 2D input"`
-	MaxDist     int
-	MaxAngle    int
-	NAngleUnits int
-	NDistUnits  int
-	DistPop     popcode.OneD `desc:"population encoding of distance value"`
-	AnglePop    popcode.Ring
+	Nm           string `desc:"name of this environment"`
+	Dsc          string `desc:"description of this environment"`
+	Size         int    `desc:"size of each dimension in 2D input"`
+	MaxDist      int
+	MaxAngle     int
+	NAngleUnits  int
+	NDistUnits   int
+	DistPop      popcode.OneD `desc:"population encoding of distance value"`
+	AnglePop     popcode.Ring
 	AttnPop      popcode.TwoD `desc:"2D population encoding of attn"`
 	AlloInputPop popcode.TwoD
 	EgoInputPop  popcode.TwoD
-	Point       image.Point `desc:"X,Y coordinates of point"`
-	Point2      image.Point
-	Point3      image.Point
-	Attn        etensor.Float32 `desc: "attentional layer"`
-	EgoInput    etensor.Float32 `desc:"Egocentric input state, 2D Size x Size"`
-	AlloInput   etensor.Float32 `desc:"Allocentric input layer"`
+	Point        image.Point `desc:"X,Y coordinates of point"`
+	Point2       image.Point
+	Point3       image.Point
+	Attn         etensor.Tensor `desc: "attentional layer"`
+	EgoInput     etensor.Tensor `desc:"Egocentric input state, 2D Size x Size"`
+	AlloInput    etensor.Tensor `desc:"Allocentric input layer"`
 	// X        etensor.Float32 `desc:"X as a one-hot state 1D Size"`
 	// Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"`
 	Distance etensor.Float32
@@ -65,7 +66,7 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.AnglePop.Defaults()
 	ev.AnglePop.Min = 0
 	ev.AnglePop.Max = 360
-	
+
 	//	ev.AttnPop.Max =
 	//	ev.AttnPop.Min =
 	//	ev.AlloInputPop.Min =
@@ -109,11 +110,11 @@ func (ev *ExEnv) States() env.Elements {
 func (ev *ExEnv) State(element string) etensor.Tensor {
 	switch element {
 	case "EgoInput":
-		return &ev.EgoInput
+		return ev.EgoInput
 	case "Attn":
-		return &ev.Attn
+		return ev.Attn
 	case "AlloInput":
-		return &ev.AlloInput
+		return ev.AlloInput
 	case "Distance":
 		return &ev.Distance
 	case "Angle":
@@ -176,8 +177,6 @@ func (ev *ExEnv) NewPoint() {
 	ev.EgoInput.SetZeros()
 	ev.Attn.SetZeros()
 	ev.AlloInput.SetZeros()
-	// ev.EgoInput.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
-	// ev.EgoInput.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
 	ev.Attn.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.AlloInput.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
 	ev.AlloInput.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
@@ -185,11 +184,11 @@ func (ev *ExEnv) NewPoint() {
 	ev.EgoInput.SetFloat([]int{ev.Point3.Y, ev.Point3.X}, 1)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.NDistUnits)
 	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.NAngleUnits)
-	ev.AttnPop.Encode(ev.Attn, mat32.Vec2(ev.Point.Y, ev.Point.X))
-	ev.EgoInputPop.Encode(ev.EgoInput, mat32.Vec2(ev.Size-1, ev.Size-1))
-	ev.EgoInputPop.Encode(ev.EgoInput, mat32.Vec2(ev.Point3.Y, ev.Point3.X))
-	ev.AlloInputPop.Encode(ev.AlloInput, mat32.Vec2(ev.Point.Y, ev.Point.X))
-	ev.AlloInputPop.Encode(ev.AlloInput, mat32.Vec2(ev.Point2.Y, ev.Point2.X))
+	ev.AttnPop.Encode(ev.Attn, mat32.NewVec2(float32(ev.Point.Y), float32(ev.Point.X)))
+	ev.EgoInputPop.Encode(ev.EgoInput, mat32.NewVec2(float32(ev.Size-1), float32(ev.Size-1)))
+	ev.EgoInputPop.Encode(ev.EgoInput, mat32.NewVec2(float32(ev.Point3.Y), float32(ev.Point3.X)))
+	ev.AlloInputPop.Encode(ev.AlloInput, mat32.NewVec2(float32(ev.Point.Y), float32(ev.Point.X)))
+	ev.AlloInputPop.Encode(ev.AlloInput, mat32.NewVec2(float32(ev.Point2.Y), float32(ev.Point2.X)))
 	ev.DistVal = float32(dist)
 	ev.AngVal = float32(ang)
 }
