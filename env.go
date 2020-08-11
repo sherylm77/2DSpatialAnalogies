@@ -36,9 +36,9 @@ type ExEnv struct {
 	Point        image.Point `desc:"X,Y coordinates of point"`
 	Point2       image.Point
 	Point3       image.Point
-	Attn         etensor.Tensor `desc: "attentional layer"`
-	EgoInput     etensor.Tensor `desc:"Egocentric input state, 2D Size x Size"`
-	AlloInput    etensor.Tensor `desc:"Allocentric input layer"`
+	Attn         etensor.Float32 `desc: "attentional layer"`
+	EgoInput     etensor.Float32 `desc:"Egocentric input state, 2D Size x Size"`
+	AlloInput    etensor.Float32 `desc:"Allocentric input layer"`
 	// X        etensor.Float32 `desc:"X as a one-hot state 1D Size"`
 	// Y        etensor.Float32 `desc:"Y  as a one-hot state 1D Size"`
 	Distance etensor.Float32
@@ -66,13 +66,16 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.AnglePop.Defaults()
 	ev.AnglePop.Min = 0
 	ev.AnglePop.Max = 360
+	ev.AlloInputPop.Defaults()
+	ev.EgoInputPop.Defaults()
+	ev.AttnPop.Defaults()
+	ev.AttnPop.Min = mat32.NewVec2(0, 0)
+	ev.AttnPop.Max = mat32.NewVec2(float32(sz), float32(sz))
+	ev.AlloInputPop.Min = mat32.NewVec2(0, 0)
+	ev.AlloInputPop.Max = mat32.NewVec2(float32(sz), float32(sz))
+	ev.EgoInputPop.Min = mat32.NewVec2(0, 0)
+	ev.EgoInputPop.Max = mat32.NewVec2(float32(sz*2), float32(sz*2))
 
-	//	ev.AttnPop.Max =
-	//	ev.AttnPop.Min =
-	//	ev.AlloInputPop.Min =
-	//	ev.AlloInputPop.Max =
-	//	ev.EgoInputPop.Min =
-	//	ev.EgoInputPop.Max =
 	ev.Trial.Max = ntrls
 	ev.EgoInput.SetShape([]int{sz*2 - 1, sz*2 - 1}, nil, []string{"Y", "X"})
 	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
@@ -110,11 +113,11 @@ func (ev *ExEnv) States() env.Elements {
 func (ev *ExEnv) State(element string) etensor.Tensor {
 	switch element {
 	case "EgoInput":
-		return ev.EgoInput
+		return &ev.EgoInput
 	case "Attn":
-		return ev.Attn
+		return &ev.Attn
 	case "AlloInput":
-		return ev.AlloInput
+		return &ev.AlloInput
 	case "Distance":
 		return &ev.Distance
 	case "Angle":
@@ -184,11 +187,11 @@ func (ev *ExEnv) NewPoint() {
 	ev.EgoInput.SetFloat([]int{ev.Point3.Y, ev.Point3.X}, 1)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.NDistUnits)
 	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.NAngleUnits)
-	ev.AttnPop.Encode(ev.Attn, mat32.NewVec2(float32(ev.Point.Y), float32(ev.Point.X)))
-	ev.EgoInputPop.Encode(ev.EgoInput, mat32.NewVec2(float32(ev.Size-1), float32(ev.Size-1)))
-	ev.EgoInputPop.Encode(ev.EgoInput, mat32.NewVec2(float32(ev.Point3.Y), float32(ev.Point3.X)))
-	ev.AlloInputPop.Encode(ev.AlloInput, mat32.NewVec2(float32(ev.Point.Y), float32(ev.Point.X)))
-	ev.AlloInputPop.Encode(ev.AlloInput, mat32.NewVec2(float32(ev.Point2.Y), float32(ev.Point2.X)))
+	ev.AttnPop.Encode(&ev.Attn, mat32.NewVec2(float32(ev.Point.Y), float32(ev.Point.X)))
+	ev.EgoInputPop.Encode(&ev.EgoInput, mat32.NewVec2(float32(ev.Size-1), float32(ev.Size-1)))
+	ev.EgoInputPop.Encode(&ev.EgoInput, mat32.NewVec2(float32(ev.Point3.Y), float32(ev.Point3.X)))
+	ev.AlloInputPop.Encode(&ev.AlloInput, mat32.NewVec2(float32(ev.Point.Y), float32(ev.Point.X)))
+	ev.AlloInputPop.Encode(&ev.AlloInput, mat32.NewVec2(float32(ev.Point2.Y), float32(ev.Point2.X)))
 	ev.DistVal = float32(dist)
 	ev.AngVal = float32(ang)
 }
