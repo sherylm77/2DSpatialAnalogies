@@ -29,6 +29,9 @@ type ExEnv struct {
 	NDistUnits  int
 	DistPop     popcode.OneD `desc:"population encoding of distance value"`
 	AnglePop    popcode.Ring
+	AttnPop      popcode.TwoD `desc:"2D population encoding of attn"`
+	AlloInputPop popcode.TwoD
+	EgoInputPop  popcode.TwoD
 	Point       image.Point `desc:"X,Y coordinates of point"`
 	Point2      image.Point
 	Point3      image.Point
@@ -62,6 +65,12 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.AnglePop.Defaults()
 	ev.AnglePop.Min = 0
 	ev.AnglePop.Max = 360
+	//	ev.AttnPop.Max =
+	//	ev.AttnPop.Min =
+	//	ev.AlloInputPop.Min =
+	//	ev.AlloInputPop.Max =
+	//	ev.EgoInputPop.Min =
+	//	ev.EgoInputPop.Max =
 	ev.Trial.Max = ntrls
 	ev.EgoInput.SetShape([]int{sz*2 - 1, sz*2 - 1}, nil, []string{"Y", "X"})
 	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
@@ -175,6 +184,11 @@ func (ev *ExEnv) NewPoint() {
 	ev.EgoInput.SetFloat([]int{ev.Point3.Y, ev.Point3.X}, 1)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.NDistUnits)
 	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.NAngleUnits)
+	ev.AttnPop.Encode(ev.Attn, mat32.Vec2(ev.Point.Y, ev.Point.X))
+	ev.EgoInputPop.Encode(ev.EgoInput, mat32.Vec2(ev.Size-1, ev.Size-1))
+	ev.EgoInputPop.Encode(ev.EgoInput, mat32.Vec2(ev.Point3.Y, ev.Point3.X))
+	ev.AlloInputPop.Encode(ev.AlloInput, mat32.Vec2(ev.Point.Y, ev.Point.X))
+	ev.AlloInputPop.Encode(ev.AlloInput, mat32.Vec2(ev.Point2.Y, ev.Point2.X))
 	ev.DistVal = float32(dist)
 	ev.AngVal = float32(ang)
 }
