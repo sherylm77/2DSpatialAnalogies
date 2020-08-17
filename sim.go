@@ -83,7 +83,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#EgoInput", Desc: "output has higher inhib because localist",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "2.6",
+					"Layer.Inhib.Layer.Gi": "1.6",
 				}},
 		},
 	}},
@@ -193,7 +193,7 @@ func (ss *Sim) New() {
 	ss.ViewOn = true
 	ss.TrainUpdt = leabra.AlphaCycle
 	ss.TestUpdt = leabra.Cycle
-	ss.TestInterval = 5
+	ss.TestInterval = 500
 	ss.LayStatNms = []string{"EgoInput"}
 }
 
