@@ -73,8 +73,10 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.AttnPop.Max = mat32.NewVec2(float32(sz), float32(sz))
 	ev.AlloInputPop.Min = mat32.NewVec2(0, 0)
 	ev.AlloInputPop.Max = mat32.NewVec2(float32(sz), float32(sz))
+	ev.AlloInputPop.Sigma.Set(0.1, 0.1)
 	ev.EgoInputPop.Min = mat32.NewVec2(0, 0)
 	ev.EgoInputPop.Max = mat32.NewVec2(float32(sz*2), float32(sz*2))
+	ev.EgoInputPop.Sigma.Set(0.1, 0.1)
 
 	ev.Trial.Max = ntrls
 	ev.EgoInput.SetShape([]int{sz*2 - 1, sz*2 - 1}, nil, []string{"Y", "X"})
@@ -181,14 +183,14 @@ func (ev *ExEnv) NewPoint() {
 	ev.Attn.SetZeros()
 	ev.AlloInput.SetZeros()
 	ev.Attn.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
-	ev.AlloInput.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
-	ev.AlloInput.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
-	ev.EgoInput.SetFloat([]int{ev.Size - 1, ev.Size - 1}, 1) //center point of input
-	ev.EgoInput.SetFloat([]int{ev.Point3.Y, ev.Point3.X}, 1)
+	//ev.AlloInput.SetFloat([]int{ev.Point.Y, ev.Point.X}, 1)
+	//ev.AlloInput.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
+	//ev.EgoInput.SetFloat([]int{ev.Size - 1, ev.Size - 1}, 1) //center point of input
+	//ev.EgoInput.SetFloat([]int{ev.Point3.Y, ev.Point3.X}, 1)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.NDistUnits, false)
 	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.NAngleUnits)
 	ev.AttnPop.Encode(&ev.Attn, mat32.NewVec2(float32(ev.Point.Y), float32(ev.Point.X)), false)
-	ev.EgoInputPop.Encode(&ev.EgoInput, mat32.NewVec2(float32(ev.Size-1), float32(ev.Size-1)), false)
+	//ev.EgoInputPop.Encode(&ev.EgoInput, mat32.NewVec2(float32(ev.Size-1), float32(ev.Size-1)), false)
 	ev.EgoInputPop.Encode(&ev.EgoInput, mat32.NewVec2(float32(ev.Point3.Y), float32(ev.Point3.X)), true)
 	ev.AlloInputPop.Encode(&ev.AlloInput, mat32.NewVec2(float32(ev.Point.Y), float32(ev.Point.X)), false)
 	ev.AlloInputPop.Encode(&ev.AlloInput, mat32.NewVec2(float32(ev.Point2.Y), float32(ev.Point2.X)), true)
