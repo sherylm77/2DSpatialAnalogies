@@ -83,7 +83,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#EgoInput", Desc: "output has higher inhib because localist",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "1.6",
+					"Layer.Inhib.Layer.Gi": "2.4",
 				}},
 		},
 	}},
@@ -217,13 +217,13 @@ func (ss *Sim) ConfigEnv() {
 		ss.MaxRuns = 10
 	}
 	if ss.MaxEpcs == 0 { // allow user override
-		ss.MaxEpcs = 50
+		ss.MaxEpcs = 500
 		ss.NZeroStop = 5
 	}
 
 	ss.TrainEnv.Nm = "TrainEnv"
 	ss.TrainEnv.Dsc = "training params and state"
-	ss.TrainEnv.Config(ss.Size, 50)
+	ss.TrainEnv.Config(ss.Size, 100)
 	ss.TrainEnv.Validate()
 	ss.TrainEnv.Run.Max = ss.MaxRuns // note: we are not setting epoch max -- do that manually
 
@@ -248,7 +248,7 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	attn := net.AddLayer2D("Attn", ss.Size, ss.Size, emer.Input)
 	alloinput := net.AddLayer2D("AlloInput", ss.Size, ss.Size, emer.Input)
 	allohid := net.AddLayer2D("AlloHidden", 12, 12, emer.Hidden)
-	egohid := net.AddLayer2D("EgoHidden", 10, 10, emer.Hidden)
+	egohid := net.AddLayer2D("EgoHidden", 12, 12, emer.Hidden)
 	//x := net.AddLayer2D("X", 1, ss.Size, emer.Target)
 	//y := net.AddLayer2D("Y", 1, ss.Size, emer.Target)
 	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.NDistUnits, emer.Target)
@@ -1359,7 +1359,7 @@ func (ss *Sim) ConfigGui() *gi.Window {
 	// 		win.Close()
 	// 	})
 
-	inQuitPrompt := false
+	/*inQuitPrompt := false
 	gi.SetQuitReqFunc(func() {
 		if inQuitPrompt {
 			return
@@ -1400,7 +1400,7 @@ func (ss *Sim) ConfigGui() *gi.Window {
 	win.SetCloseCleanFunc(func(w *gi.Window) {
 		go gi.Quit() // once main window is closed, quit
 	})
-
+	*/
 	win.MainMenuUpdated()
 	return win
 }
