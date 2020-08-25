@@ -17,6 +17,7 @@ import (
 
 	"github.com/emer/emergent/emer"
 	"github.com/emer/emergent/env"
+	"github.com/emer/emergent/erand"
 	"github.com/emer/emergent/netview"
 	"github.com/emer/emergent/params"
 	"github.com/emer/emergent/prjn"
@@ -83,7 +84,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: "#EgoInput", Desc: "output has higher inhib because localist",
 				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "2.4",
+					"Layer.Inhib.Layer.Gi": "2.6",
 				}},
 		},
 	}},
@@ -121,6 +122,7 @@ type Sim struct {
 	LayStatNms   []string          `desc:"names of layers to collect more detailed stats on (avg act, etc)"`
 
 	// statistics: note use float64 as that is best for etable.Table
+	AlloTarg      bool    `Determines if AlloInput is a Target or not`
 	TrlErr        float64 `inactive:"+" desc:"1 if trial was error, 0 if correct -- based on SSE = 0 (subject to .5 unit-wise tolerance)"`
 	TrlSSE        float64 `inactive:"+" desc:"current trial's sum squared error"`
 	TrlAvgSSE     float64 `inactive:"+" desc:"current trial's average sum squared error"`
@@ -459,6 +461,15 @@ func (ss *Sim) TrainTrial() {
 		}
 	}
 
+	ss.AlloTarg = erand.BoolProb(0.5, -1)
+	if ss.AlloTarg {
+		//get layer by name AlloInput
+		//set type to target
+		//get layer by name Distance and Angle
+		//set type to input
+	} else {
+		//do the opposite
+	}
 	ss.ApplyInputs(&ss.TrainEnv)
 	ss.AlphaCyc(true)   // train
 	ss.TrialStats(true) // accumulate
