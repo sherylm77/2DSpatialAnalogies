@@ -280,6 +280,7 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.ConnectLayers(inp, egohid, full, emer.Forward)
 	net.ConnectLayers(attn, allohid, full, emer.Forward)
 	net.ConnectLayers(alloinput, allohid, full, emer.Forward)
+	net.ConnectLayers(allohid, alloinput, full, emer.Forward)
 	//net.BidirConnectLayers(egohid, x, full)
 	//net.BidirConnectLayers(egohid, y, full)
 	net.BidirConnectLayers(allohid, inp, full)
