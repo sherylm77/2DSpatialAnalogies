@@ -281,6 +281,7 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	full := prjn.NewFull()
 
 	net.ConnectLayers(inp, egohid, full, emer.Forward)
+	net.ConnectLayers(egohid, inp, full, emer.Forward)
 	net.ConnectLayers(attn, allohid, full, emer.Forward)
 	net.ConnectLayers(alloinput, allohid, full, emer.Forward)
 	net.ConnectLayers(allohid, alloinput, full, emer.Forward)
