@@ -545,12 +545,15 @@ func (ss *Sim) TrialStats(accum bool) {
 	ss.TrlCosDiff = float64(inp.CosDiff.Cos)
 	ss.EgoCosDiff = float64(inp.CosDiff.Cos)
 	inp_s, inp_a := inp.MSE(0.5)
-	ss.TrlSSE += inp_s
+	ss.TrlSSE = inp_s
 	ss.TrlAvgSSE = inp_a
 
 	if ss.AlloTarg {
 		alloinput := ss.Net.LayerByName("AlloInput").(leabra.LeabraLayer).AsLeabra()
 		ss.AlloCosDiff = float64(alloinput.CosDiff.Cos)
+		allo_s, allo_a := alloinput.MSE(0.5)
+		ss.TrlSSE += allo_s
+		ss.TrlAvgSSE = (ss.TrlAvgSSE + allo_a) / 2
 	} else {
 		dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
 		ang := ss.Net.LayerByName("Angle").(leabra.LeabraLayer).AsLeabra()
