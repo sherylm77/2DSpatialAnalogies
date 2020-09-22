@@ -263,8 +263,8 @@ func (ss *Sim) ConfigEnv() {
 func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.InitName(net, "EnvSim")
 	inp := net.AddLayer2D("EgoInput", ss.Size*2-1, ss.Size*2-1, emer.Target)
-	attn := net.AddLayer2D("Attn", ss.Size, ss.Size, emer.Input)
-	alloinput := net.AddLayer2D("AlloInput", ss.Size, ss.Size, emer.Input)
+	attn := net.AddLayer2D("Attn", ss.Size+3, ss.Size+3, emer.Input)
+	alloinput := net.AddLayer2D("AlloInput", ss.Size+3, ss.Size+3, emer.Input)
 	allohid := net.AddLayer2D("AlloHidden", 20, 20, emer.Hidden)
 	egohid := net.AddLayer2D("EgoHidden", 12, 12, emer.Hidden)
 	//x := net.AddLayer2D("X", 1, ss.Size, emer.Target)
