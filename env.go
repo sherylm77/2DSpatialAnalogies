@@ -24,6 +24,7 @@ type ExEnv struct {
 	Nm           string `desc:"name of this environment"`
 	Dsc          string `desc:"description of this environment"`
 	Size         int    `desc:"size of each dimension in 2D input"`
+	MinDist      float32
 	MaxDist      int
 	MaxAngle     int
 	NAngleUnits  int
@@ -57,6 +58,7 @@ func (ev *ExEnv) Desc() string { return ev.Dsc }
 func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Size = sz
 	ev.MaxDist = int(float64(sz) * math.Sqrt(2))
+	ev.MinDist = 4
 	ev.MaxAngle = 360
 	ev.NAngleUnits = 24
 	ev.NDistUnits = 10
@@ -69,10 +71,10 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.AlloInputPop.Defaults()
 	ev.EgoInputPop.Defaults()
 	ev.AttnPop.Defaults()
-	ev.AttnPop.Min = mat32.NewVec2(-2, -2)
-	ev.AttnPop.Max = mat32.NewVec2(float32(sz+3), float32(sz+3))
-	ev.AlloInputPop.Min = mat32.NewVec2(-2, -2)
-	ev.AlloInputPop.Max = mat32.NewVec2(float32(sz+3)*1.1, float32(sz+3)*1.1)
+	ev.AttnPop.Min = mat32.NewVec2(0, 0)
+	ev.AttnPop.Max = mat32.NewVec2(float32(sz), float32(sz))
+	ev.AlloInputPop.Min = mat32.NewVec2(-1, -1)
+	ev.AlloInputPop.Max = mat32.NewVec2(float32(sz)*1.1, float32(sz)*1.1)
 	ev.AlloInputPop.Sigma.Set(0.1, 0.1)
 	ev.EgoInputPop.Min = mat32.NewVec2(0, 0)
 	ev.EgoInputPop.Max = mat32.NewVec2(float32(sz*2), float32(sz*2))
@@ -80,8 +82,8 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 
 	ev.Trial.Max = ntrls
 	ev.EgoInput.SetShape([]int{sz*2 - 1, sz*2 - 1}, nil, []string{"Y", "X"})
-	ev.Attn.SetShape([]int{sz + 3, sz + 3}, nil, []string{"Y", "X"})
-	ev.AlloInput.SetShape([]int{sz + 3, sz + 3}, nil, []string{"Y", "X"})
+	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
+	ev.AlloInput.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
 	// ev.X.SetShape([]int{sz}, nil, []string{"X"})
 	// ev.Y.SetShape([]int{sz}, nil, []string{"Y"})
 	ev.Distance.SetShape([]int{ev.NDistUnits}, nil, []string{"Distance"})
@@ -153,16 +155,20 @@ func (ev *ExEnv) Init(run int) {
 func (ev *ExEnv) NewPoint() {
 	ev.Point.X = rand.Intn(ev.Size)
 	ev.Point.Y = rand.Intn(ev.Size)
-	for {
+	/*for {
 		ev.Point2.X = rand.Intn(ev.Size)
 		ev.Point2.Y = rand.Intn(ev.Size)
 		if ev.Point2 != ev.Point {
 			break
 		}
-	}
+	}*/
+	dist := ev.MinDist + rand.Float32()*(float32(ev.MaxDist)-ev.MinDist)
+	ang := rand.Float32() * 360
+	ev.Point2.X = int(mat32.Round(dist*mat32.Cos(ang/math.Pi) + float32(ev.Point.X)))
+	ev.Point2.Y = int(mat32.Round(dist*mat32.Sin(ang/math.Pi) + float32(ev.Point.Y)))
 	xDist := ev.Point2.X - ev.Point.X
 	yDist := ev.Point2.Y - ev.Point.Y
-	dist := math.Hypot(float64(xDist), float64(yDist))
+
 	ang0 := 0.0
 	ang360 := 0.0
 	if xDist >= 0 && yDist >= 0 {
@@ -174,7 +180,7 @@ func (ev *ExEnv) NewPoint() {
 	} else { //xDist < 0 and yDist < 0
 		ang360 = 360 + (math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi)
 	}
-	ang := ang0 + ang360
+	ang = float32(ang0 + ang360)
 
 	ev.Point3.X = ev.Size - 1 + xDist
 	ev.Point3.Y = ev.Size - 1 + yDist
