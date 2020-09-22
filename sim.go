@@ -86,6 +86,14 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi": "2.6",
 				}},
+			{Sel: "#AlloInput", Desc: "output has higher inhib because localist",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "2.0",
+				}},
+			{Sel: "#AlloHidden", Desc: "output has higher inhib because localist",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "2.0",
+				}},
 		},
 	}},
 }
@@ -146,6 +154,11 @@ type Sim struct {
 
 	// internal state - view:"-"
 	TargAng        float32 `inactive:"+" desc:"actual angle"`
+	TargDist       float32
+	Pt1X           float32
+	Pt1Y           float32
+	Pt2X           float32
+	Pt2Y           float32
 	GuessAng       float32 `inactive:"+" desc:"guessed angle"`
 	SumErr         float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
 	SumSSE         float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
