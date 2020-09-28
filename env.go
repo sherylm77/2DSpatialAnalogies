@@ -9,6 +9,7 @@ import (
 	"image"
 	"math"
 	"math/rand"
+	"time"
 
 	"github.com/emer/emergent/env"
 	"github.com/emer/emergent/popcode"
@@ -57,7 +58,7 @@ func (ev *ExEnv) Desc() string { return ev.Dsc }
 // Config sets the size, number of trials to run per epoch, and configures the states
 func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Size = sz
-	ev.MaxDist = int(float64(sz) * math.Sqrt(2))
+	ev.MaxDist = int(float64(sz+3) * math.Sqrt(2))
 	ev.MinDist = 4
 	ev.MaxAngle = 360
 	ev.NAngleUnits = 24
@@ -153,8 +154,12 @@ func (ev *ExEnv) Init(run int) {
 
 // NewPoint generates a new point and sets state accordingly
 func (ev *ExEnv) NewPoint() {
-	ev.Point.X = rand.Intn(ev.Size)
-	ev.Point.Y = rand.Intn(ev.Size)
+	currentTime := time.Now()
+	rand.Seed(int64(currentTime.Unix()))
+	// ev.Point.X = rand.Intn(ev.Size + 3)
+	// ev.Point.Y = rand.Intn(ev.Size + 3)
+	ev.Point.X = 1
+	ev.Point.Y = 1
 	/*for {
 		ev.Point2.X = rand.Intn(ev.Size)
 		ev.Point2.Y = rand.Intn(ev.Size)
@@ -162,10 +167,10 @@ func (ev *ExEnv) NewPoint() {
 			break
 		}
 	}*/
-	dist := ev.MinDist + rand.Float32()*(float32(ev.MaxDist)-ev.MinDist)
+	dist := ev.MinDist + rand.Float32()*(float32(ev.MaxDist)-ev.MinDist+1)
 	ang := rand.Float32() * 360
-	ev.Point2.X = int(mat32.Round(dist*mat32.Cos(ang/math.Pi) + float32(ev.Point.X)))
-	ev.Point2.Y = int(mat32.Round(dist*mat32.Sin(ang/math.Pi) + float32(ev.Point.Y)))
+	ev.Point2.X = int(math.Abs(float64(dist*mat32.Cos(ang*math.Pi/180)))) + ev.Point.X
+	ev.Point2.Y = int(math.Abs(float64(dist*mat32.Sin(ang*math.Pi/180)))) + ev.Point.Y
 	xDist := ev.Point2.X - ev.Point.X
 	yDist := ev.Point2.Y - ev.Point.Y
 
