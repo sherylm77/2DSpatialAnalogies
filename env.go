@@ -58,8 +58,8 @@ func (ev *ExEnv) Desc() string { return ev.Dsc }
 // Config sets the size, number of trials to run per epoch, and configures the states
 func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Size = sz
-	ev.MaxDist = int(float64(sz+3) * math.Sqrt(2))
-	ev.MinDist = 4
+	ev.MaxDist = int(float64(sz) * math.Sqrt(2))
+	ev.MinDist = 5
 	ev.MaxAngle = 360
 	ev.NAngleUnits = 24
 	ev.NDistUnits = 10
@@ -72,10 +72,10 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.AlloInputPop.Defaults()
 	ev.EgoInputPop.Defaults()
 	ev.AttnPop.Defaults()
-	ev.AttnPop.Min = mat32.NewVec2(0, 0)
-	ev.AttnPop.Max = mat32.NewVec2(float32(sz), float32(sz))
-	ev.AlloInputPop.Min = mat32.NewVec2(-1, -1)
-	ev.AlloInputPop.Max = mat32.NewVec2(float32(sz)*1.1, float32(sz)*1.1)
+	ev.AttnPop.Min = mat32.NewVec2(-1, -1)
+	ev.AttnPop.Max = mat32.NewVec2(float32(sz+3), float32(sz+3))
+	ev.AlloInputPop.Min = mat32.NewVec2(-3, -3)
+	ev.AlloInputPop.Max = mat32.NewVec2(float32(sz+5), float32(sz+5))
 	ev.AlloInputPop.Sigma.Set(0.1, 0.1)
 	ev.EgoInputPop.Min = mat32.NewVec2(0, 0)
 	ev.EgoInputPop.Max = mat32.NewVec2(float32(sz*2), float32(sz*2))
@@ -84,7 +84,7 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Trial.Max = ntrls
 	ev.EgoInput.SetShape([]int{sz*2 - 1, sz*2 - 1}, nil, []string{"Y", "X"})
 	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
-	ev.AlloInput.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
+	ev.AlloInput.SetShape([]int{sz + 3, sz + 3}, nil, []string{"Y", "X"})
 	// ev.X.SetShape([]int{sz}, nil, []string{"X"})
 	// ev.Y.SetShape([]int{sz}, nil, []string{"Y"})
 	ev.Distance.SetShape([]int{ev.NDistUnits}, nil, []string{"Distance"})
@@ -156,10 +156,10 @@ func (ev *ExEnv) Init(run int) {
 func (ev *ExEnv) NewPoint() {
 	currentTime := time.Now()
 	rand.Seed(int64(currentTime.Unix()))
-	// ev.Point.X = rand.Intn(ev.Size + 3)
-	// ev.Point.Y = rand.Intn(ev.Size + 3)
-	ev.Point.X = 1
-	ev.Point.Y = 1
+	ev.Point.X = rand.Intn(ev.Size)
+	ev.Point.Y = rand.Intn(ev.Size)
+	// ev.Point.X = 1
+	// ev.Point.Y = 1
 	/*for {
 		ev.Point2.X = rand.Intn(ev.Size)
 		ev.Point2.Y = rand.Intn(ev.Size)
@@ -167,10 +167,14 @@ func (ev *ExEnv) NewPoint() {
 			break
 		}
 	}*/
+	maxDist1 := math.Hypot(float64(7-ev.Point.X), float64(7-ev.Point.Y)) // point 9, 9
+	maxDist2 := math.Hypot(float64(ev.Point.X), float64(ev.Point.Y))     // point 0, 0
+	ev.MaxDist = int(math.Min(maxDist1, maxDist2))
 	dist := ev.MinDist + rand.Float32()*(float32(ev.MaxDist)-ev.MinDist+1)
 	ang := rand.Float32() * 360
 	ev.Point2.X = int(math.Abs(float64(dist*mat32.Cos(ang*math.Pi/180)))) + ev.Point.X
 	ev.Point2.Y = int(math.Abs(float64(dist*mat32.Sin(ang*math.Pi/180)))) + ev.Point.Y
+	hypotDist := math.Hypot(float64(ev.Point2.X-ev.Point.X), float64(ev.Point2.Y-ev.Point.Y))
 	xDist := ev.Point2.X - ev.Point.X
 	yDist := ev.Point2.Y - ev.Point.Y
 
@@ -198,14 +202,14 @@ func (ev *ExEnv) NewPoint() {
 	//ev.AlloInput.SetFloat([]int{ev.Point2.Y, ev.Point2.X}, 1)
 	//ev.EgoInput.SetFloat([]int{ev.Size - 1, ev.Size - 1}, 1) //center point of input
 	//ev.EgoInput.SetFloat([]int{ev.Point3.Y, ev.Point3.X}, 1)
-	ev.DistPop.Encode(&ev.Distance.Values, float32(dist), ev.NDistUnits, false)
+	ev.DistPop.Encode(&ev.Distance.Values, float32(hypotDist), ev.NDistUnits, false)
 	ev.AnglePop.Encode(&ev.Angle.Values, float32(ang), ev.NAngleUnits)
 	ev.AttnPop.Encode(&ev.Attn, mat32.NewVec2(float32(ev.Point.Y), float32(ev.Point.X)), false)
 	//ev.EgoInputPop.Encode(&ev.EgoInput, mat32.NewVec2(float32(ev.Size-1), float32(ev.Size-1)), false)
 	ev.EgoInputPop.Encode(&ev.EgoInput, mat32.NewVec2(float32(ev.Point3.Y), float32(ev.Point3.X)), true)
 	ev.AlloInputPop.Encode(&ev.AlloInput, mat32.NewVec2(float32(ev.Point.Y), float32(ev.Point.X)), false)
 	ev.AlloInputPop.Encode(&ev.AlloInput, mat32.NewVec2(float32(ev.Point2.Y), float32(ev.Point2.X)), true)
-	ev.DistVal = float32(dist)
+	ev.DistVal = float32(hypotDist)
 	ev.AngVal = float32(ang)
 }
 

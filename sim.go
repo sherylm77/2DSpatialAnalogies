@@ -553,6 +553,10 @@ func (ss *Sim) InitStats() {
 func (ss *Sim) TrialStats(accum bool) {
 	//x := ss.Net.LayerByName("X").(leabra.LeabraLayer).AsLeabra()
 	//y := ss.Net.LayerByName("Y").(leabra.LeabraLayer).AsLeabra()
+	ss.Pt1X = float32(ss.TrainEnv.Point.X)
+	ss.Pt1Y = float32(ss.TrainEnv.Point.Y)
+	ss.Pt2X = float32(ss.TrainEnv.Point2.X)
+	ss.Pt2Y = float32(ss.TrainEnv.Point2.Y)
 	inp := ss.Net.LayerByName("EgoInput").(leabra.LeabraLayer).AsLeabra()
 
 	ss.TrlCosDiff = float64(inp.CosDiff.Cos)
@@ -567,6 +571,7 @@ func (ss *Sim) TrialStats(accum bool) {
 		allo_s, allo_a := alloinput.MSE(0.5)
 		ss.TrlSSE += allo_s
 		ss.TrlAvgSSE = (ss.TrlAvgSSE + allo_a) / 2
+		ss.TargDist = ss.TrainEnv.DistVal
 	} else {
 		dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
 		ang := ss.Net.LayerByName("Angle").(leabra.LeabraLayer).AsLeabra()
@@ -596,6 +601,7 @@ func (ss *Sim) TrialStats(accum bool) {
 		ss.AngleError = float64(mat32.Min(angError1, float32(angError2))) / 360
 		ss.TargAng = targAng
 		ss.GuessAng = angVal
+		ss.TargDist = ss.TrainEnv.DistVal
 
 		//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
 		ss.TrlCosDiff = (ss.TrlCosDiff + float64(dist.CosDiff.Cos+ang.CosDiff.Cos)) / 3
