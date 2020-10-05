@@ -9,7 +9,6 @@ import (
 	"image"
 	"math"
 	"math/rand"
-	"time"
 
 	"github.com/emer/emergent/env"
 	"github.com/emer/emergent/popcode"
@@ -154,10 +153,11 @@ func (ev *ExEnv) Init(run int) {
 
 // NewPoint generates a new point and sets state accordingly
 func (ev *ExEnv) NewPoint() {
-	currentTime := time.Now()
-	rand.Seed(int64(currentTime.Unix()))
-	ev.Point.X = rand.Intn(ev.Size)
-	ev.Point.Y = rand.Intn(ev.Size)
+	//put in config
+	//currentTime := time.Now()
+	//rand.Seed(int64(currentTime.Unix()))
+	//ev.Point.X = rand.Intn(ev.Size)
+	//ev.Point.Y = rand.Intn(ev.Size)
 	// ev.Point.X = 1
 	// ev.Point.Y = 1
 	/*for {
@@ -167,32 +167,76 @@ func (ev *ExEnv) NewPoint() {
 			break
 		}
 	}*/
-	maxDist1 := math.Hypot(float64(7-ev.Point.X), float64(7-ev.Point.Y)) // point 9, 9
-	maxDist2 := math.Hypot(float64(ev.Point.X), float64(ev.Point.Y))     // point 0, 0
-	ev.MaxDist = int(math.Min(maxDist1, maxDist2))
-	dist := ev.MinDist + rand.Float32()*(float32(ev.MaxDist)-ev.MinDist+1)
+	//maxDist1 := math.Hypot(float64(7-ev.Point.X), float64(7-ev.Point.Y)) // point 9, 9
+	//maxDist2 := math.Hypot(float64(ev.Point.X), float64(ev.Point.Y))     // point 0, 0
+	//ev.MaxDist = int(math.Min(maxDist1, maxDist2))
+	ev.MinDist = 2
+	ev.MaxDist = ev.Size
+	dist := ev.MinDist + rand.Float32()*(float32(ev.MaxDist)-ev.MinDist)
 	ang := rand.Float32() * 360
-	ev.Point2.X = int(math.Abs(float64(dist*mat32.Cos(ang*math.Pi/180)))) + ev.Point.X
-	ev.Point2.Y = int(math.Abs(float64(dist*mat32.Sin(ang*math.Pi/180)))) + ev.Point.Y
+	ev.Point3.X = 5
+	ev.Point3.Y = 5
+	for {
+		ev.Point3.X = int(math.Abs(float64(dist * mat32.Cos(ang*math.Pi/180))))
+		ev.Point3.Y = int(math.Abs(float64(dist * mat32.Sin(ang*math.Pi/180))))
+		if !(ev.Point3.X == 5 && ev.Point3.Y == 5) { // point 3 cannot be 5, 5
+			break
+		}
+	}
+	xDist := ev.Point3.X - 5
+	yDist := ev.Point3.Y - 5
+	maxX := 0
+	minX := 0
+	maxY := 0
+	minY := 0
+	if xDist > 0 {
+		maxX = ev.Size - xDist
+		minX = 0
+	}
+	if xDist < 0 {
+		maxX = ev.Size
+		minX = int(math.Abs(float64(xDist)))
+	}
+	if xDist == 0 {
+		minX = 0
+		maxX = ev.Size
+	}
+	if yDist > 0 {
+		maxY = ev.Size - yDist
+		minY = 0
+	}
+	if yDist < 0 {
+		maxY = ev.Size
+		minY = int(math.Abs(float64(yDist)))
+	}
+	if yDist == 0 {
+		minY = 0
+		maxY = ev.Size
+	}
+	ev.Point.X = int(float32(minX) + rand.Float32()*float32((maxX-minX)))
+	ev.Point.Y = int(float32(minY) + rand.Float32()*float32((maxY-minY)))
+	ev.Point2.X = ev.Point.X + xDist
+	ev.Point2.Y = ev.Point.Y + yDist
+	//generate Point based on range above
 	hypotDist := math.Hypot(float64(ev.Point2.X-ev.Point.X), float64(ev.Point2.Y-ev.Point.Y))
-	xDist := ev.Point2.X - ev.Point.X
-	yDist := ev.Point2.Y - ev.Point.Y
+	xDistance := ev.Point2.X - ev.Point.X
+	yDistance := ev.Point2.Y - ev.Point.Y
 
 	ang0 := 0.0
 	ang360 := 0.0
-	if xDist >= 0 && yDist >= 0 {
-		ang0 = math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi
+	if xDistance >= 0 && yDistance >= 0 {
+		ang0 = math.Atan2(float64(yDistance), float64(xDistance)) * 180 / math.Pi
 	} else if xDist < 0 && yDist >= 0 {
-		ang0 = math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi
+		ang0 = math.Atan2(float64(yDistance), float64(xDistance)) * 180 / math.Pi
 	} else if xDist >= 0 && yDist < 0 {
-		ang360 = 360 - (math.Abs(math.Atan2(float64(yDist), float64(xDist))) * 180 / math.Pi)
+		ang360 = 360 - (math.Abs(math.Atan2(float64(yDistance), float64(xDistance))) * 180 / math.Pi)
 	} else { //xDist < 0 and yDist < 0
-		ang360 = 360 + (math.Atan2(float64(yDist), float64(xDist)) * 180 / math.Pi)
+		ang360 = 360 + (math.Atan2(float64(yDistance), float64(xDistance)) * 180 / math.Pi)
 	}
 	ang = float32(ang0 + ang360)
 
-	ev.Point3.X = ev.Size - 1 + xDist
-	ev.Point3.Y = ev.Size - 1 + yDist
+	//ev.Point3.X = ev.Size - 1 + xDist
+	//ev.Point3.Y = ev.Size - 1 + yDist
 
 	ev.EgoInput.SetZeros()
 	ev.Attn.SetZeros()
