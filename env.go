@@ -172,20 +172,20 @@ func (ev *ExEnv) NewPoint() {
 	//maxDist2 := math.Hypot(float64(ev.Point.X), float64(ev.Point.Y))     // point 0, 0
 	//ev.MaxDist = int(math.Min(maxDist1, maxDist2))
 	ev.MinDist = 2
-	ev.MaxDist = ev.Size
+	ev.MaxDist = ev.Size - 1
 	dist := ev.MinDist + rand.Float32()*(float32(ev.MaxDist)-ev.MinDist)
 	ang := rand.Float32() * 360
-	ev.Point3.X = 8
-	ev.Point3.Y = 8
+	ev.Point3.X = 8 //ev.Size-1
+	ev.Point3.Y = 8 //ev.Size-1
 	for {
-		ev.Point3.X = int(math.Abs(float64(dist * mat32.Cos(ang*math.Pi/180))))
-		ev.Point3.Y = int(math.Abs(float64(dist * mat32.Sin(ang*math.Pi/180))))
-		if !(ev.Point3.X == 8 && ev.Point3.Y == 8) { // point 3 cannot be 5, 5
+		ev.Point3.X = 8 + int(float64(dist*mat32.Cos(ang*math.Pi/180)))
+		ev.Point3.Y = 8 + int(float64(dist*mat32.Sin(ang*math.Pi/180)))
+		if !(ev.Point3.X == 8 && ev.Point3.Y == 8) { // point 3 cannot be 8, 8
 			break
 		}
 	}
-	xDist := ev.Point3.X - 8
-	yDist := ev.Point3.Y - 8
+	xDist := ev.Point3.X - ev.Size
+	yDist := ev.Point3.Y - ev.Size
 	maxX := 0
 	minX := 0
 	maxY := 0
