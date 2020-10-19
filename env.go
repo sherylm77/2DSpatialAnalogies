@@ -72,13 +72,13 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.AlloInputPop.Defaults()
 	ev.EgoInputPop.Defaults()
 	ev.AttnPop.Defaults()
-	ev.AttnPop.Min = mat32.NewVec2(-1, -1)
+	ev.AttnPop.Min = mat32.NewVec2(-4, -4)
 	ev.AttnPop.Max = mat32.NewVec2(float32(sz+3), float32(sz+3))
 	ev.AlloInputPop.Min = mat32.NewVec2(-3, -3)
-	ev.AlloInputPop.Max = mat32.NewVec2(float32(sz+5), float32(sz+5))
+	ev.AlloInputPop.Max = mat32.NewVec2(float32(sz+3), float32(sz+3))
 	ev.AlloInputPop.Sigma.Set(0.1, 0.1)
-	ev.EgoInputPop.Min = mat32.NewVec2(0, 0)
-	ev.EgoInputPop.Max = mat32.NewVec2(float32(sz*2+5), float32(sz*2+5))
+	ev.EgoInputPop.Min = mat32.NewVec2(-1, -1)
+	ev.EgoInputPop.Max = mat32.NewVec2(float32(sz*2), float32(sz*2))
 	ev.EgoInputPop.Sigma.Set(0.1, 0.1)
 
 	currentTime := time.Now()
@@ -86,8 +86,8 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 
 	ev.Trial.Max = ntrls
 	ev.EgoInput.SetShape([]int{sz*2 - 1, sz*2 - 1}, nil, []string{"Y", "X"})
-	ev.Attn.SetShape([]int{sz, sz}, nil, []string{"Y", "X"})
-	ev.AlloInput.SetShape([]int{sz + 3, sz + 3}, nil, []string{"Y", "X"})
+	ev.Attn.SetShape([]int{sz + 1, sz + 1}, nil, []string{"Y", "X"})
+	ev.AlloInput.SetShape([]int{sz*2 - 1, sz*2 - 1}, nil, []string{"Y", "X"})
 	// ev.X.SetShape([]int{sz}, nil, []string{"X"})
 	// ev.Y.SetShape([]int{sz}, nil, []string{"Y"})
 	ev.Distance.SetShape([]int{ev.NDistUnits}, nil, []string{"Distance"})
@@ -171,12 +171,12 @@ func (ev *ExEnv) NewPoint() {
 	//maxDist1 := math.Hypot(float64(7-ev.Point.X), float64(7-ev.Point.Y)) // point 9, 9
 	//maxDist2 := math.Hypot(float64(ev.Point.X), float64(ev.Point.Y))     // point 0, 0
 	//ev.MaxDist = int(math.Min(maxDist1, maxDist2))
-	ev.MinDist = 2
+	ev.MinDist = 5
 	ev.MaxDist = ev.Size - 1
 	dist := ev.MinDist + rand.Float32()*(float32(ev.MaxDist)-ev.MinDist)
 	ang := rand.Float32() * 360
-	ev.Point3.X = 8 //ev.Size-1
-	ev.Point3.Y = 8 //ev.Size-1
+	ev.Point3.X = 8
+	ev.Point3.Y = 8
 	for {
 		ev.Point3.X = 8 + int(float64(dist*mat32.Cos(ang*math.Pi/180)))
 		ev.Point3.Y = 8 + int(float64(dist*mat32.Sin(ang*math.Pi/180)))
@@ -184,8 +184,8 @@ func (ev *ExEnv) NewPoint() {
 			break
 		}
 	}
-	xDist := ev.Point3.X - ev.Size
-	yDist := ev.Point3.Y - ev.Size
+	xDist := ev.Point3.X - 8
+	yDist := ev.Point3.Y - 8
 	maxX := 0
 	minX := 0
 	maxY := 0
