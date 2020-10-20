@@ -171,7 +171,7 @@ func (ev *ExEnv) NewPoint() {
 	//maxDist1 := math.Hypot(float64(7-ev.Point.X), float64(7-ev.Point.Y)) // point 9, 9
 	//maxDist2 := math.Hypot(float64(ev.Point.X), float64(ev.Point.Y))     // point 0, 0
 	//ev.MaxDist = int(math.Min(maxDist1, maxDist2))
-	ev.MinDist = 5
+	/* ev.MinDist = 5
 	ev.MaxDist = ev.Size - 1
 	dist := ev.MinDist + rand.Float32()*(float32(ev.MaxDist)-ev.MinDist)
 	ang := rand.Float32() * 360
@@ -183,9 +183,16 @@ func (ev *ExEnv) NewPoint() {
 		if !(ev.Point3.X == 8 && ev.Point3.Y == 8) { // point 3 cannot be 8, 8
 			break
 		}
+	} */
+	for {
+		ev.Point3.X = rand.Intn(16)
+		ev.Point3.Y = rand.Intn(16)
+		if (ev.Point3.X <= 4 || ev.Point3.X >= 12) && (ev.Point3.Y <= 4 || ev.Point3.Y >= 12) {
+			break
+		}
 	}
-	xDist := ev.Point3.X - 8
-	yDist := ev.Point3.Y - 8
+	xDist := ev.Point3.X - ev.Size
+	yDist := ev.Point3.Y - ev.Size
 	maxX := 0
 	minX := 0
 	maxY := 0
@@ -222,6 +229,7 @@ func (ev *ExEnv) NewPoint() {
 	hypotDist := math.Hypot(float64(ev.Point2.X-ev.Point.X), float64(ev.Point2.Y-ev.Point.Y))
 	xDistance := ev.Point2.X - ev.Point.X
 	yDistance := ev.Point2.Y - ev.Point.Y
+	//angle := math.Atan2(float64(ev.Point2.Y-ev.Point.Y), float64(ev.Point2.X-ev.Point.X))
 
 	ang0 := 0.0
 	ang360 := 0.0
@@ -234,10 +242,7 @@ func (ev *ExEnv) NewPoint() {
 	} else { //xDist < 0 and yDist < 0
 		ang360 = 360 + (math.Atan2(float64(yDistance), float64(xDistance)) * 180 / math.Pi)
 	}
-	ang = float32(ang0 + ang360)
-
-	//ev.Point3.X = ev.Size - 1 + xDist
-	//ev.Point3.Y = ev.Size - 1 + yDist
+	ang := float32(ang0 + ang360)
 
 	ev.EgoInput.SetZeros()
 	ev.Attn.SetZeros()
