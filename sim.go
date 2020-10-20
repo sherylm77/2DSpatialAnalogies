@@ -460,6 +460,7 @@ func (ss *Sim) TrainTrial() {
 	epc, _, chg := ss.TrainEnv.Counter(env.Epoch)
 	if chg {
 		ss.LogTrnEpc(ss.TrnEpcLog)
+		ss.LrateSched(epc)
 		if ss.ViewOn && ss.TrainUpdt > leabra.AlphaCycle {
 			ss.UpdateView(true)
 		}
@@ -691,6 +692,14 @@ func (ss *Sim) Stopped() {
 // it will auto-prompt for filename
 func (ss *Sim) SaveWeights(filename gi.FileName) {
 	ss.Net.SaveWtsJSON(filename)
+}
+
+func (ss *Sim) LrateSched(epc int) {
+	switch epc {
+	case 60:
+		ss.Net.LrateMult(0.5)
+		fmt.Printf("dropped lrate 0.5 at epoch: %d\n", epc)
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
