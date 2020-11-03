@@ -185,41 +185,55 @@ func (ev *ExEnv) NewPoint() {
 		}
 	} */
 	for {
-		ev.Point3.X = rand.Intn(16)
+		/* ev.Point3.X = rand.Intn(16)
 		ev.Point3.Y = rand.Intn(16)
 		if (ev.Point3.X <= 4 || ev.Point3.X >= 12) && (ev.Point3.Y <= 4 || ev.Point3.Y >= 12) {
 			break
+		} */
+		if rand.Intn(2) == 0 { //horizontal
+			ev.Point3.X = rand.Intn(16)
+			ev.Point3.Y = 8
+			if ev.Point3.X <= 4 || ev.Point3.X >= 12 {
+				break
+			}
+		} else { //vertical
+			ev.Point3.X = 8
+			ev.Point3.Y = rand.Intn(16)
+			if ev.Point3.Y <= 4 || ev.Point3.Y >= 12 {
+				break
+			}
 		}
+
 	}
-	xDist := ev.Point3.X - ev.Size
-	yDist := ev.Point3.Y - ev.Size
+	xDist := ev.Point3.X - 8
+	yDist := ev.Point3.Y - 8
 	maxX := 0
 	minX := 0
 	maxY := 0
 	minY := 0
 	if xDist > 0 {
-		maxX = ev.Size - xDist
+		maxX = 8 - xDist
 		minX = 0
 	}
 	if xDist < 0 {
-		maxX = ev.Size
+		maxX = 8
 		minX = int(math.Abs(float64(xDist)))
 	}
 	if xDist == 0 {
 		minX = 0
-		maxX = ev.Size
+		maxX = 8
 	}
 	if yDist > 0 {
-		maxY = ev.Size - yDist
+		maxY = 8 - yDist
 		minY = 0
 	}
 	if yDist < 0 {
-		maxY = ev.Size
+		maxY = 8
 		minY = int(math.Abs(float64(yDist)))
 	}
 	if yDist == 0 {
 		minY = 0
-		maxY = ev.Size
+		maxY = 8
 	}
 	ev.Point.X = int(float32(minX) + rand.Float32()*float32((maxX-minX)))
 	ev.Point.Y = int(float32(minY) + rand.Float32()*float32((maxY-minY)))
