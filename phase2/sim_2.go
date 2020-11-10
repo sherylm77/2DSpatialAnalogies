@@ -263,19 +263,13 @@ func (ss *Sim) ConfigEnv() {
 func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.InitName(net, "EnvSim")
 	inp := net.AddLayer2D("EgoInput", ss.Size*2-1, ss.Size*2-1, emer.Target)
-	attn := net.AddLayer2D("Attn", ss.Size+1, ss.Size+1, emer.Input)
-	alloinput := net.AddLayer2D("AlloInput", ss.Size*2-1, ss.Size*2-1, emer.Input)
-	allohid := net.AddLayer2D("AlloHidden", 20, 20, emer.Hidden)
-	egohid := net.AddLayer2D("EgoHidden", 12, 12, emer.Hidden)
 	//x := net.AddLayer2D("X", 1, ss.Size, emer.Target)
 	//y := net.AddLayer2D("Y", 1, ss.Size, emer.Target)
 	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.NDistUnits, emer.Target)
-	ang := net.AddLayer2D("Angle", 1, ss.TrainEnv.NAngleUnits, emer.Target)
 
 	//x.SetClass("Output")
 	//y.SetClass("Output")
 	dist.SetClass("Output")
-	ang.SetClass("Output")
 
 	// use this to position layers relative to each other
 	// default is Above, YAlign = Front, XAlign = Center
