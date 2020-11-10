@@ -6,7 +6,6 @@ package main
 
 import (
 	"fmt"
-	"image"
 	"math"
 	"math/rand"
 	"time"
@@ -28,10 +27,6 @@ type ExEnv struct {
 	MaxDist    int
 	NDistUnits int
 	DistPop    popcode.OneD `desc:"population encoding of distance value"`
-	Input1Pop  popcode.OneD
-	Input2Pop  popcode.OneD
-	Point      image.Point `desc:"X,Y coordinates of point"`
-	Point2     image.Point
 	Input1     etensor.Float32
 	Input2     etensor.Float32
 	Distance   etensor.Float32
@@ -53,12 +48,6 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.DistPop.Defaults()
 	ev.DistPop.Min = float32(ev.MaxDist) * -0.1
 	ev.DistPop.Max = float32(ev.MaxDist) * 1.1
-	ev.Input1Pop.Defaults()
-	ev.Input1Pop.Min = 0
-	ev.Input1Pop.Max = 7
-	ev.Input2Pop.Defaults()
-	ev.Input2Pop.Min = 0
-	ev.Input2Pop.Max = 7
 
 	currentTime := time.Now()
 	rand.Seed(int64(currentTime.Unix()))
@@ -110,7 +99,7 @@ func (ev *ExEnv) Actions() env.Elements {
 
 // String returns the current state as a string
 func (ev *ExEnv) String() string {
-	return fmt.Sprintf("Pt_%d_%d", ev.Point.X, ev.Point.Y)
+	return fmt.Sprintf("Pt")
 }
 
 // Init is called to restart environment
