@@ -80,18 +80,6 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi": "1.4",
 				}},
-			{Sel: "#EgoInput", Desc: "output has higher inhib because localist",
-				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "2.6",
-				}},
-			{Sel: "#AlloInput", Desc: "output has higher inhib because localist",
-				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "2.0",
-				}},
-			{Sel: "#AlloHidden", Desc: "output has higher inhib because localist",
-				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "2.0",
-				}},
 		},
 	}},
 }
@@ -194,7 +182,7 @@ func (ss *Sim) New() {
 	ss.TrainUpdt = leabra.AlphaCycle
 	ss.TestUpdt = leabra.Cycle
 	ss.TestInterval = 500
-	ss.LayStatNms = []string{"EgoInput"}
+	//ss.LayStatNms = []string{"EgoInput"}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,7 +240,7 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 
 	//x.SetClass("Output")
 	//y.SetClass("Output")
-	dist.SetClass("Output")
+	//dist.SetClass("Output")
 
 	// use this to position layers relative to each other
 	// default is Above, YAlign = Front, XAlign = Center
@@ -260,6 +248,7 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	//attn.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "EgoInput", YAlign: relpos.Front, Space: 4})
 	//allohid.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "EgoHidden", YAlign: relpos.Front, Space: 4})
 	//alloinput.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "EgoInput", YAlign: relpos.Front, Space: 2})
+	//inp1.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Input2", YAlign: relpos.Front, Space: 2})
 	hid1.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input1", YAlign: relpos.Front, Space: 4})
 	hid1.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Hidden2", YAlign: relpos.Front, Space: 2})
 	hid2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input2", YAlign: relpos.Front, XAlign: relpos.Left})

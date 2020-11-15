@@ -25,8 +25,12 @@ type ExEnv struct {
 	Size       int    `desc:"size of each dimension in 2D input"`
 	MinDist    float32
 	MaxDist    int
+	MinInp     float32
+	MaxInp     float32
 	NDistUnits int
 	DistPop    popcode.OneD `desc:"population encoding of distance value"`
+	Input1Pop  popcode.OneD
+	Input2Pop  popcode.OneD
 	Input1     etensor.Float32
 	Input2     etensor.Float32
 	Distance   etensor.Float32
@@ -48,6 +52,15 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.DistPop.Defaults()
 	ev.DistPop.Min = float32(ev.MaxDist) * -0.1
 	ev.DistPop.Max = float32(ev.MaxDist) * 1.1
+
+	ev.MaxInp = 8
+	ev.MinInp = 0
+	ev.Input1Pop.Defaults()
+	ev.Input2Pop.Defaults()
+	ev.Input1Pop.Min = float32(ev.MinInp) * -0.1
+	ev.Input1Pop.Max = float32(ev.MaxInp) * 1.1
+	ev.Input2Pop.Min = float32(ev.MinInp) * -0.1
+	ev.Input2Pop.Max = float32(ev.MaxInp) * 1.1
 
 	currentTime := time.Now()
 	rand.Seed(int64(currentTime.Unix()))
@@ -116,8 +129,14 @@ func (ev *ExEnv) Init(run int) {
 
 // NewPoint generates a new point and sets state accordingly
 func (ev *ExEnv) NewPoint() {
-	//ev.DistPop.Encode(&ev.Distance.Values, float32(hypotDist), ev.NDistUnits, false)
-	//ev.DistVal = float32(hypotDist)
+	input1 := rand.Intn(int(ev.MaxInp + 1))
+	input2 := rand.Intn(int(ev.MaxInp + 1))
+	distance := input2 - input1
+
+	ev.Input1Pop.Encode(&ev.Input1.Values, float32(input1), 1, false)
+	ev.Input2Pop.Encode(&ev.Input2.Values, float32(input2), 1, false)
+	ev.DistPop.Encode(&ev.Distance.Values, float32(distance), ev.NDistUnits, false)
+	ev.DistVal = float32(distance)
 }
 
 // Step is called to advance the environment state
