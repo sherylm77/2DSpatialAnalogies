@@ -232,10 +232,11 @@ func (ss *Sim) ConfigEnv() {
 
 func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.InitName(net, "EnvSim")
-	inp1 := net.AddLayer2D("Input1", 1, ss.Size, emer.Input)
-	inp2 := net.AddLayer2D("Input2", 1, ss.Size, emer.Input)
-	hid1 := net.AddLayer2D("Hidden1", 15, 15, emer.Hidden)
-	hid2 := net.AddLayer2D("Hidden2", 15, 15, emer.Hidden)
+	inp1 := net.AddLayer2D("Input 1", 1, ss.Size, emer.Input)
+	inp2 := net.AddLayer2D("Input 2", 1, ss.Size, emer.Input)
+	hid1 := net.AddLayer2D("Hidden 1", 15, 15, emer.Hidden)
+	hid2 := net.AddLayer2D("Hidden 2", 15, 15, emer.Hidden)
+	combhid := net.AddLayer2D("Combined Hidden", 15, 15, emer.Hidden)
 	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.NDistUnits, emer.Target)
 
 	//x.SetClass("Output")
@@ -249,9 +250,9 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	//allohid.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "EgoHidden", YAlign: relpos.Front, Space: 4})
 	//alloinput.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "EgoInput", YAlign: relpos.Front, Space: 2})
 	//inp1.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Input2", YAlign: relpos.Front, Space: 2})
-	hid1.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input1", YAlign: relpos.Front, Space: 4})
-	hid1.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Hidden2", YAlign: relpos.Front, Space: 2})
-	hid2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input2", YAlign: relpos.Front, XAlign: relpos.Left})
+	hid1.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input 1", YAlign: relpos.Front, Space: 4})
+	hid1.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Hidden 2", YAlign: relpos.Front, Space: 2})
+	hid2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input 2", YAlign: relpos.Front, XAlign: relpos.Left})
 	//attn.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "EgoHidden", YAlign: relpos.Front, XAlign: relpos.Left})
 	//dist.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Attn", YAlign: relpos.Front, XAlign: relpos.Middle, Space: 1})
 	//ang.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Distance", XAlign: relpos.Middle, Space: 4, Scale: 0.5})
@@ -268,8 +269,9 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	//net.BidirConnectLayers(egohid, x, full)
 	//net.BidirConnectLayers(egohid, y, full)
 	//net.BidirConnectLayers(allohid, inp, full)
-	net.BidirConnectLayers(hid1, dist, full)
-	net.BidirConnectLayers(hid2, dist, full)
+	net.BidirConnectLayers(hid1, combhid, full)
+	net.BidirConnectLayers(hid2, combhid, full)
+	net.BidirConnectLayers(combhid, dist, full)
 
 	// note: if you wanted to change a layer type from e.g., Target to Compare, do this:
 	// out.SetType(emer.Compare)
@@ -404,7 +406,7 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	lays := []string{"Input1", "Input2", "Hidden1", "Hidden2", "Distance"}
+	lays := []string{"Input 1", "Input 2", "Distance"}
 	for _, lnm := range lays {
 		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
 		pats := en.State(ly.Nm)
@@ -507,7 +509,7 @@ func (ss *Sim) TrialStats(accum bool) {
 	inp_s, inp_a := inp.MSE(0.5)
 	ss.TrlSSE = inp_s
 	ss.TrlAvgSSE = inp_a*/
-	
+
 	/*inp1 := ss.Net.LayerByName("Input1Pop").(leabra.LeabraLayer).AsLeabra()
 	inp2 := ss.Net.LayerByName("Input2Pop").(leabra.LeabraLayer).AsLeabra()
 	ss.TrlCosDiff = (float64(inp1.CosDiff.Cos) + float64(inp2.CosDiff.Cos)) / 2
@@ -521,7 +523,7 @@ func (ss *Sim) TrialStats(accum bool) {
 	dist_s, dist_a := dist.MSE(0.5)
 	ss.TrlSSE = dist_s
 	ss.TrlAvgSSE = dist_a
-	
+
 	/*dist := ss.Net.LayerByName("DistPop").(leabra.LeabraLayer).AsLeabra()
 	dtsr := ss.ValsTsr(dist.Nm)
 	dist.UnitValsTensor(dtsr, "ActM")
@@ -599,7 +601,7 @@ func (ss *Sim) TrialStats(accum bool) {
 		ss.SumSSE += ss.TrlSSE
 		ss.SumAvgSSE += ss.TrlAvgSSE
 		ss.SumCosDiff += ss.TrlCosDiff
-		ss.SumDistError += ss.DistanceError
+		//ss.SumDistError += ss.DistanceError
 	}
 }
 
@@ -833,8 +835,8 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	ss.EpcPctCor = 1 - ss.EpcPctErr
 	ss.EpcCosDiff = ss.SumCosDiff / nt
 	ss.SumCosDiff = 0
-	ss.EpcDistError = ss.SumDistError / nt
-	ss.SumDistError = 0
+	//ss.EpcDistError = ss.SumDistError / nt
+	//ss.SumDistError = 0
 	if ss.FirstZero < 0 && ss.EpcPctErr == 0 {
 		ss.FirstZero = epc
 	}

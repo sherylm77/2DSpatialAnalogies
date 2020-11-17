@@ -6,7 +6,6 @@ package main
 
 import (
 	"fmt"
-	"math"
 	"math/rand"
 	"time"
 
@@ -24,7 +23,7 @@ type ExEnv struct {
 	Dsc        string `desc:"description of this environment"`
 	Size       int    `desc:"size of each dimension in 2D input"`
 	MinDist    float32
-	MaxDist    int
+	MaxDist    float32
 	MinInp     float32
 	MaxInp     float32
 	NDistUnits int
@@ -46,20 +45,20 @@ func (ev *ExEnv) Desc() string { return ev.Dsc }
 // Config sets the size, number of trials to run per epoch, and configures the states
 func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Size = sz
-	ev.MaxDist = int(float64(sz) * math.Sqrt(2))
-	ev.MinDist = 5
+	ev.MaxDist = float32(sz)
+	ev.MinDist = float32(-1 * sz)
 	ev.NDistUnits = 10
 	ev.DistPop.Defaults()
-	ev.DistPop.Min = float32(ev.MaxDist) * -0.1
-	ev.DistPop.Max = float32(ev.MaxDist) * 1.1
+	ev.DistPop.Min = ev.MinDist
+	ev.DistPop.Max = ev.MaxDist
 
-	ev.MaxInp = 8
+	ev.MaxInp = float32(sz)
 	ev.MinInp = 0
 	ev.Input1Pop.Defaults()
 	ev.Input2Pop.Defaults()
-	ev.Input1Pop.Min = float32(ev.MinInp) * -0.1
+	ev.Input1Pop.Min = 0
 	ev.Input1Pop.Max = float32(ev.MaxInp) * 1.1
-	ev.Input2Pop.Min = float32(ev.MinInp) * -0.1
+	ev.Input2Pop.Min = 0
 	ev.Input2Pop.Max = float32(ev.MaxInp) * 1.1
 
 	currentTime := time.Now()
@@ -68,8 +67,8 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Trial.Max = ntrls
 
 	ev.Distance.SetShape([]int{ev.NDistUnits}, nil, []string{"Distance"})
-	ev.Input1.SetShape([]int{sz}, nil, []string{"Input 1"})
-	ev.Input2.SetShape([]int{sz}, nil, []string{"Input 2"})
+	ev.Input1.SetShape([]int{sz}, nil, []string{"Input1"})
+	ev.Input2.SetShape([]int{sz}, nil, []string{"Input2"})
 }
 
 func (ev *ExEnv) Validate() error {
@@ -129,12 +128,12 @@ func (ev *ExEnv) Init(run int) {
 
 // NewPoint generates a new point and sets state accordingly
 func (ev *ExEnv) NewPoint() {
-	input1 := rand.Intn(int(ev.MaxInp + 1))
-	input2 := rand.Intn(int(ev.MaxInp + 1))
+	input1 := rand.Intn(int(ev.MaxInp))
+	input2 := rand.Intn(int(ev.MaxInp))
 	distance := input2 - input1
 
-	ev.Input1Pop.Encode(&ev.Input1.Values, float32(input1), 1, false)
-	ev.Input2Pop.Encode(&ev.Input2.Values, float32(input2), 1, false)
+	ev.Input1Pop.Encode(&ev.Input1.Values, float32(input1), int(ev.MaxInp), false)
+	ev.Input2Pop.Encode(&ev.Input2.Values, float32(input2), int(ev.MaxInp), false)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(distance), ev.NDistUnits, false)
 	ev.DistVal = float32(distance)
 }
