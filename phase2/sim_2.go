@@ -502,12 +502,42 @@ func (ss *Sim) InitStats() {
 // different time-scales over which stats could be accumulated etc.
 // You can also aggregate directly from log data, as is done for testing stats
 func (ss *Sim) TrialStats(accum bool) {
-	inp := ss.Net.LayerByName("EgoInput").(leabra.LeabraLayer).AsLeabra()
-
+	/*inp := ss.Net.LayerByName("EgoInput").(leabra.LeabraLayer).AsLeabra()
 	ss.TrlCosDiff = float64(inp.CosDiff.Cos)
 	inp_s, inp_a := inp.MSE(0.5)
 	ss.TrlSSE = inp_s
-	ss.TrlAvgSSE = inp_a
+	ss.TrlAvgSSE = inp_a*/
+	
+	/*inp1 := ss.Net.LayerByName("Input1Pop").(leabra.LeabraLayer).AsLeabra()
+	inp2 := ss.Net.LayerByName("Input2Pop").(leabra.LeabraLayer).AsLeabra()
+	ss.TrlCosDiff = (float64(inp1.CosDiff.Cos) + float64(inp2.CosDiff.Cos)) / 2
+	inp1_s, inp1_a := inp1.MSE(0.5)
+	inp2_s, inp2_a := inp2.MSE(0.5)
+	ss.TrlSSE = (inp1_s + inp2_s) / 2
+	ss.TrlAvgSSE = (inp1_a + inp2_a) / 2*/
+
+	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
+	ss.TrlCosDiff = float64(dist.CosDiff.Cos)
+	dist_s, dist_a := dist.MSE(0.5)
+	ss.TrlSSE = dist_s
+	ss.TrlAvgSSE = dist_a
+	
+	/*dist := ss.Net.LayerByName("DistPop").(leabra.LeabraLayer).AsLeabra()
+	dtsr := ss.ValsTsr(dist.Nm)
+	dist.UnitValsTensor(dtsr, "ActM")
+	distVal := ss.TrainEnv.DistPop.Decode(dtsr.Values)
+	targDist := ss.TrainEnv.DistVal
+	distError := math.Abs(float64(distVal - targDist))
+	ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
+	ss.TargDist = ss.TrainEnv.DistVal
+	//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
+	//ss.TrlSSE, ss.TrlAvgSSE = x.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
+	dist_s, dist_a := dist.MSE(0.5)
+	ss.TrlSSE += dist_s
+	ss.TrlAvgSSE = (ss.TrlAvgSSE + dist_a) / 2
+	//ys, ya := y.MSE(0.5)
+	//ss.TrlSSE += ys
+	//ss.TrlAvgSSE = 0.5 * (ss.TrlAvgSSE + ya)*/
 
 	/* if ss.AlloTarg {
 		alloinput := ss.Net.LayerByName("AlloInput").(leabra.LeabraLayer).AsLeabra()
