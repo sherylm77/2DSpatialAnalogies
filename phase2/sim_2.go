@@ -80,6 +80,10 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi": "1.4",
 				}},
+			{Sel: "#Distance", Desc: "output has higher inhib because localist",
+				Params: params.Params{
+					"Layer.Inhib.Layer.Gi": "1.6",
+				}},
 		},
 	}},
 }

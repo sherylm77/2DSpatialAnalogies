@@ -45,21 +45,24 @@ func (ev *ExEnv) Desc() string { return ev.Dsc }
 // Config sets the size, number of trials to run per epoch, and configures the states
 func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Size = sz
-	ev.MaxDist = float32(sz)
-	ev.MinDist = float32(-1 * sz)
+	ev.MaxDist = float32(sz + 2)
+	ev.MinDist = float32(-1*sz - 2)
 	ev.NDistUnits = 10
 	ev.DistPop.Defaults()
 	ev.DistPop.Min = ev.MinDist
 	ev.DistPop.Max = ev.MaxDist
 
 	ev.MaxInp = float32(sz)
-	ev.MinInp = 0
+	ev.MinInp = -2
 	ev.Input1Pop.Defaults()
 	ev.Input2Pop.Defaults()
-	ev.Input1Pop.Min = 0
-	ev.Input1Pop.Max = float32(ev.MaxInp) * 1.1
-	ev.Input2Pop.Min = 0
-	ev.Input2Pop.Max = float32(ev.MaxInp) * 1.1
+	ev.Input1Pop.Min = ev.MinInp
+	ev.Input1Pop.Max = float32(ev.MaxInp) * 1.3
+	ev.Input2Pop.Min = ev.MinInp
+	ev.Input2Pop.Max = float32(ev.MaxInp) * 1.3
+	ev.Input1Pop.Sigma = 0.1
+	ev.Input2Pop.Sigma = 0.1
+	ev.DistPop.Sigma = 0.1
 
 	currentTime := time.Now()
 	rand.Seed(int64(currentTime.Unix()))
