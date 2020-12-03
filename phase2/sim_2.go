@@ -19,7 +19,6 @@ import (
 	"github.com/emer/emergent/netview"
 	"github.com/emer/emergent/params"
 	"github.com/emer/emergent/prjn"
-	"github.com/emer/emergent/relpos"
 	"github.com/emer/etable/agg"
 	"github.com/emer/etable/eplot"
 	"github.com/emer/etable/etable"
@@ -80,10 +79,10 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Layer.Inhib.Layer.Gi": "1.4",
 				}},
-			{Sel: "#Distance", Desc: "output has higher inhib because localist",
-				Params: params.Params{
-					"Layer.Inhib.Layer.Gi": "1.6",
-				}},
+			// {Sel: "#Distance", Desc: "output has higher inhib because localist",
+			// 	Params: params.Params{
+			// 		"Layer.Inhib.Layer.Gi": "1.6",
+			// 	}},
 		},
 	}},
 }
@@ -238,9 +237,9 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.InitName(net, "EnvSim")
 	inp1 := net.AddLayer2D("Input 1", 1, ss.Size, emer.Input)
 	inp2 := net.AddLayer2D("Input 2", 1, ss.Size, emer.Input)
-	hid1 := net.AddLayer2D("Hidden 1", 15, 15, emer.Hidden)
-	hid2 := net.AddLayer2D("Hidden 2", 15, 15, emer.Hidden)
-	combhid := net.AddLayer2D("Combined Hidden", 15, 15, emer.Hidden)
+	//hid1 := net.AddLayer2D("Hidden 1", 15, 15, emer.Hidden)
+	//hid2 := net.AddLayer2D("Hidden 2", 15, 15, emer.Hidden)
+	combhid := net.AddLayer2D("Combined Hidden", 7, 7, emer.Hidden)
 	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.NDistUnits, emer.Target)
 
 	//x.SetClass("Output")
@@ -254,9 +253,9 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	//allohid.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "EgoHidden", YAlign: relpos.Front, Space: 4})
 	//alloinput.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "EgoInput", YAlign: relpos.Front, Space: 2})
 	//inp1.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Input2", YAlign: relpos.Front, Space: 2})
-	hid1.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input 1", YAlign: relpos.Front, Space: 4})
-	hid1.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Hidden 2", YAlign: relpos.Front, Space: 2})
-	hid2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input 2", YAlign: relpos.Front, XAlign: relpos.Left})
+	//hid1.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input 1", YAlign: relpos.Front, Space: 4})
+	//hid1.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Hidden 2", YAlign: relpos.Front, Space: 2})
+	//hid2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input 2", YAlign: relpos.Front, XAlign: relpos.Left})
 	//attn.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "EgoHidden", YAlign: relpos.Front, XAlign: relpos.Left})
 	//dist.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Attn", YAlign: relpos.Front, XAlign: relpos.Middle, Space: 1})
 	//ang.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Distance", XAlign: relpos.Middle, Space: 4, Scale: 0.5})
@@ -264,8 +263,8 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	// NewFull returns a new prjn.Full connectivity pattern
 	full := prjn.NewFull()
 
-	net.ConnectLayers(inp1, hid1, full, emer.Forward)
-	net.ConnectLayers(inp2, hid2, full, emer.Forward)
+	net.ConnectLayers(inp1, combhid, full, emer.Forward)
+	net.ConnectLayers(inp2, combhid, full, emer.Forward)
 	//net.ConnectLayers(attn, allohid, full, emer.Forward)
 	//net.ConnectLayers(alloinput, allohid, full, emer.Forward)
 	//net.ConnectLayers(allohid, alloinput, full, emer.Forward)
@@ -273,8 +272,8 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	//net.BidirConnectLayers(egohid, x, full)
 	//net.BidirConnectLayers(egohid, y, full)
 	//net.BidirConnectLayers(allohid, inp, full)
-	net.BidirConnectLayers(hid1, combhid, full)
-	net.BidirConnectLayers(hid2, combhid, full)
+	//net.BidirConnectLayers(hid1, combhid, full)
+	//net.BidirConnectLayers(hid2, combhid, full)
 	net.BidirConnectLayers(combhid, dist, full)
 
 	// note: if you wanted to change a layer type from e.g., Target to Compare, do this:
