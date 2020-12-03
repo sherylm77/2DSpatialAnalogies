@@ -16,6 +16,7 @@ import (
 
 	"github.com/emer/emergent/emer"
 	"github.com/emer/emergent/env"
+	"github.com/emer/emergent/erand"
 	"github.com/emer/emergent/netview"
 	"github.com/emer/emergent/params"
 	"github.com/emer/emergent/prjn"
@@ -119,6 +120,8 @@ type Sim struct {
 	LayStatNms   []string          `desc:"names of layers to collect more detailed stats on (avg act, etc)"`
 
 	// statistics: note use float64 as that is best for etable.Table
+	InpTarg       bool    `Determines if an Input layer is a Target or not`
+	InpLayTarg    int     `Which Input layer is a target, if neither then 0`
 	TrlErr        float64 `inactive:"+" desc:"1 if trial was error, 0 if correct -- based on SSE = 0 (subject to .5 unit-wise tolerance)"`
 	TrlSSE        float64 `inactive:"+" desc:"current trial's sum squared error"`
 	TrlAvgSSE     float64 `inactive:"+" desc:"current trial's average sum squared error"`
@@ -263,8 +266,8 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	// NewFull returns a new prjn.Full connectivity pattern
 	full := prjn.NewFull()
 
-	net.ConnectLayers(inp1, combhid, full, emer.Forward)
-	net.ConnectLayers(inp2, combhid, full, emer.Forward)
+	net.BidirConnectLayers(inp1, combhid, full)
+	net.BidirConnectLayers(inp2, combhid, full)
 	//net.ConnectLayers(attn, allohid, full, emer.Forward)
 	//net.ConnectLayers(alloinput, allohid, full, emer.Forward)
 	//net.ConnectLayers(allohid, alloinput, full, emer.Forward)
@@ -451,6 +454,26 @@ func (ss *Sim) TrainTrial() {
 			}
 		}
 	}
+	ss.InpTarg = erand.BoolProb(0.5, -1)
+
+	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
+	inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
+	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
+	if ss.InpTarg {
+		ss.InpLayTarg = rand.Intn(2) + 1 // if 1, then Inp1 is Target, else if 2, then Inp2 is Target
+		dist.SetType(emer.Input)
+		if ss.InpLayTarg == 1 { // Inp1 is Target
+			inp1.SetType(emer.Target)
+			inp2.SetType(emer.Input)
+		} else { //Inp2 is Target
+			inp1.SetType(emer.Input)
+			inp2.SetType(emer.Target)
+		}
+	} else {
+		inp1.SetType(emer.Input)
+		inp2.SetType(emer.Input)
+		dist.SetType(emer.Target)
+	}
 	ss.ApplyInputs(&ss.TrainEnv)
 	ss.AlphaCyc(true)   // train
 	ss.TrialStats(true) // accumulate
@@ -507,92 +530,27 @@ func (ss *Sim) InitStats() {
 // different time-scales over which stats could be accumulated etc.
 // You can also aggregate directly from log data, as is done for testing stats
 func (ss *Sim) TrialStats(accum bool) {
-	/*inp := ss.Net.LayerByName("EgoInput").(leabra.LeabraLayer).AsLeabra()
-	ss.TrlCosDiff = float64(inp.CosDiff.Cos)
-	inp_s, inp_a := inp.MSE(0.5)
-	ss.TrlSSE = inp_s
-	ss.TrlAvgSSE = inp_a*/
-
-	/*inp1 := ss.Net.LayerByName("Input1Pop").(leabra.LeabraLayer).AsLeabra()
-	inp2 := ss.Net.LayerByName("Input2Pop").(leabra.LeabraLayer).AsLeabra()
-	ss.TrlCosDiff = (float64(inp1.CosDiff.Cos) + float64(inp2.CosDiff.Cos)) / 2
-	inp1_s, inp1_a := inp1.MSE(0.5)
-	inp2_s, inp2_a := inp2.MSE(0.5)
-	ss.TrlSSE = (inp1_s + inp2_s) / 2
-	ss.TrlAvgSSE = (inp1_a + inp2_a) / 2*/
-
-	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
-	ss.TrlCosDiff = float64(dist.CosDiff.Cos)
-	dist_s, dist_a := dist.MSE(0.5)
-	ss.TrlSSE = dist_s
-	ss.TrlAvgSSE = dist_a
-
-	/*dist := ss.Net.LayerByName("DistPop").(leabra.LeabraLayer).AsLeabra()
-	dtsr := ss.ValsTsr(dist.Nm)
-	dist.UnitValsTensor(dtsr, "ActM")
-	distVal := ss.TrainEnv.DistPop.Decode(dtsr.Values)
-	targDist := ss.TrainEnv.DistVal
-	distError := math.Abs(float64(distVal - targDist))
-	ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
-	ss.TargDist = ss.TrainEnv.DistVal
-	//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
-	//ss.TrlSSE, ss.TrlAvgSSE = x.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
-	dist_s, dist_a := dist.MSE(0.5)
-	ss.TrlSSE += dist_s
-	ss.TrlAvgSSE = (ss.TrlAvgSSE + dist_a) / 2
-	//ys, ya := y.MSE(0.5)
-	//ss.TrlSSE += ys
-	//ss.TrlAvgSSE = 0.5 * (ss.TrlAvgSSE + ya)*/
-
-	/* if ss.AlloTarg {
-		alloinput := ss.Net.LayerByName("AlloInput").(leabra.LeabraLayer).AsLeabra()
-		ss.AlloCosDiff = float64(alloinput.CosDiff.Cos)
-		allo_s, allo_a := alloinput.MSE(0.5)
-		ss.TrlSSE += allo_s
-		ss.TrlAvgSSE = (ss.TrlAvgSSE + allo_a) / 2
-		ss.TargDist = ss.TrainEnv.DistVal
-	} else {
-		dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
-		ang := ss.Net.LayerByName("Angle").(leabra.LeabraLayer).AsLeabra()
-
-		dtsr := ss.ValsTsr(dist.Nm)
-		angtsr := ss.ValsTsr(ang.Nm)
-
-		dist.UnitValsTensor(dtsr, "ActM")
-		ang.UnitValsTensor(angtsr, "ActM")
-
-		distVal := ss.TrainEnv.DistPop.Decode(dtsr.Values)
-		angVal := ss.TrainEnv.AnglePop.Decode(angtsr.Values)
-
-		targDist := ss.TrainEnv.DistVal
-		targAng := ss.TrainEnv.AngVal
-
-		distError := math.Abs(float64(distVal - targDist))
-		angError1 := mat32.Abs(angVal - targAng)
-		angError2 := float32(0)
-		if targAng < 180 {
-			angError2 = mat32.Abs((360 + targAng) - angVal)
-		} else {
-			angError2 = mat32.Abs((targAng - 360) - angVal)
+	if ss.InpTarg {
+		if ss.InpLayTarg == 1 { // Inp1 is Target
+			inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
+			ss.TrlCosDiff = float64(inp1.CosDiff.Cos)
+			inp1_s, inp1_a := inp1.MSE(0.5)
+			ss.TrlSSE = inp1_s
+			ss.TrlAvgSSE = inp1_a
+		} else { // Inp2 is Target
+			inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
+			ss.TrlCosDiff = float64(inp2.CosDiff.Cos)
+			inp2_s, inp2_a := inp2.MSE(0.5)
+			ss.TrlSSE = inp2_s
+			ss.TrlAvgSSE = inp2_a
 		}
-
-		ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
-		ss.AngleError = float64(mat32.Min(angError1, float32(angError2))) / 360
-		ss.TargAng = targAng
-		ss.GuessAng = angVal
-		ss.TargDist = ss.TrainEnv.DistVal
-
-		//ss.TrlCosDiff = float64(x.CosDiff.Cos+y.CosDiff.Cos) * 0.5
-		ss.TrlCosDiff = (ss.TrlCosDiff + float64(dist.CosDiff.Cos+ang.CosDiff.Cos)) / 3
-		//ss.TrlSSE, ss.TrlAvgSSE = x.MSE(0.5) // 0.5 = per-unit tolerance -- right side of .5
+	} else { //Distance is Target
+		dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
+		ss.TrlCosDiff = float64(dist.CosDiff.Cos)
 		dist_s, dist_a := dist.MSE(0.5)
-		ang_s, ang_a := ang.MSE(0.5)
-		ss.TrlSSE += dist_s + ang_s
-		//ys, ya := y.MSE(0.5)
-		//ss.TrlSSE += ys
-		//ss.TrlAvgSSE = 0.5 * (ss.TrlAvgSSE + ya)
-		ss.TrlAvgSSE = (ss.TrlAvgSSE + dist_a + ang_a) / 3
-	} */
+		ss.TrlSSE = dist_s
+		ss.TrlAvgSSE = dist_a
+	}
 
 	if ss.TrlSSE > 0 {
 		ss.TrlErr = 1
