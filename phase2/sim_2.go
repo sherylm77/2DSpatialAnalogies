@@ -74,7 +74,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".Back", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates",
 				Params: params.Params{
-					"Prjn.WtScale.Rel": "0.1",
+					"Prjn.WtScale.Rel": "1",
 				}},
 			{Sel: ".Output", Desc: "output has higher inhib because localist",
 				Params: params.Params{
@@ -84,6 +84,10 @@ var ParamSets = params.Sets{
 			// 	Params: params.Params{
 			// 		"Layer.Inhib.Layer.Gi": "1.6",
 			// 	}},
+			{Sel: "#DistanceToCombined Hidden", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates",
+				Params: params.Params{
+					"Prjn.WtScale.Rel": "0.5",
+				}},
 		},
 	}},
 }
@@ -242,7 +246,8 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	inp2 := net.AddLayer2D("Input 2", 1, ss.Size, emer.Input)
 	//hid1 := net.AddLayer2D("Hidden 1", 15, 15, emer.Hidden)
 	//hid2 := net.AddLayer2D("Hidden 2", 15, 15, emer.Hidden)
-	combhid := net.AddLayer2D("Combined Hidden", 7, 7, emer.Hidden)
+	combhid := net.AddLayer2D("Combined Hidden", 9, 9, emer.Hidden)
+	hid2 := net.AddLayer2D("Hidden 2", 9, 9, emer.Hidden)
 	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.NDistUnits, emer.Target)
 
 	//x.SetClass("Output")
@@ -276,8 +281,8 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	//net.BidirConnectLayers(egohid, y, full)
 	//net.BidirConnectLayers(allohid, inp, full)
 	//net.BidirConnectLayers(hid1, combhid, full)
-	//net.BidirConnectLayers(hid2, combhid, full)
-	net.BidirConnectLayers(combhid, dist, full)
+	net.BidirConnectLayers(combhid, hid2, full)
+	net.BidirConnectLayers(hid2, dist, full)
 
 	// note: if you wanted to change a layer type from e.g., Target to Compare, do this:
 	// out.SetType(emer.Compare)
