@@ -34,6 +34,8 @@ type ExEnv struct {
 	Input2     etensor.Float32
 	Distance   etensor.Float32
 	DistVal    float32
+	Inp1Val    float32
+	Inp2Val    float32
 	Run        env.Ctr `view:"inline" desc:"current run of model as provided during Init"`
 	Epoch      env.Ctr `view:"inline" desc:"number of times through Seq.Max number of sequences"`
 	Trial      env.Ctr `view:"inline" desc:"trial increments over input states -- could add Event as a lower level"`
@@ -45,12 +47,12 @@ func (ev *ExEnv) Desc() string { return ev.Dsc }
 // Config sets the size, number of trials to run per epoch, and configures the states
 func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Size = sz
-	ev.MaxDist = float32(sz + 2)
+	ev.MaxDist = float32(sz)
 	ev.MinDist = float32(-1*sz - 2)
 	ev.NDistUnits = 10
 	ev.DistPop.Defaults()
 	ev.DistPop.Min = ev.MinDist
-	ev.DistPop.Max = ev.MaxDist
+	ev.DistPop.Max = ev.MaxDist + 2
 
 	ev.MaxInp = float32(sz)
 	ev.MinInp = -2
@@ -139,6 +141,8 @@ func (ev *ExEnv) NewPoint() {
 	ev.Input2Pop.Encode(&ev.Input2.Values, float32(input2), int(ev.MaxInp), false)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(distance), ev.NDistUnits, false)
 	ev.DistVal = float32(distance)
+	ev.Inp1Val = float32(input1)
+	ev.Inp2Val = float32(input2)
 }
 
 // Step is called to advance the environment state
