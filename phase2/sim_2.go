@@ -85,7 +85,7 @@ var ParamSets = params.Sets{
 			// 	Params: params.Params{
 			// 		"Layer.Inhib.Layer.Gi": "1.6",
 			// 	}},
-			{Sel: "#DistanceToCombined Hidden", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates",
+			{Sel: "#DistanceToHidden 2", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.5",
 				}},
