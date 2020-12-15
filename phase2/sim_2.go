@@ -666,7 +666,7 @@ func (ss *Sim) SaveWeights(filename gi.FileName) {
 
 func (ss *Sim) LrateSched(epc int) {
 	switch epc {
-	case 60:
+	case 80:
 		ss.Net.LrateMult(0.5)
 		fmt.Printf("dropped lrate 0.5 at epoch: %d\n", epc)
 	}
