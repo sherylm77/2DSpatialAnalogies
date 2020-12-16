@@ -332,9 +332,9 @@ func (ss *Sim) NewRndSeed() {
 // and add a few tabs at the end to allow for expansion..
 func (ss *Sim) Counters(train bool) string {
 	if train {
-		return fmt.Sprintf("Run:\t%d\tEpoch:\t%d\tTrial:\t%d\tCycle:\t%d\tName:\t%v\t\t\t", ss.TrainEnv.Run.Cur, ss.TrainEnv.Epoch.Cur, ss.TrainEnv.Trial.Cur, ss.Time.Cycle, ss.TrainEnv.String())
+		return fmt.Sprintf("Run:\t%d\tEpoch:\t%d\tTrial:\t%d\tCycle:\t%d\tName:\t%v\t\t\t", ss.TrainEnv.Run.Cur, ss.TrainEnv.Epoch.Cur, ss.TrainEnv.Trial.Cur, ss.Time.Cycle, ss.TrainEnv.String(ss.InpTarg, ss.InpLayTarg))
 	} else {
-		return fmt.Sprintf("Run:\t%d\tEpoch:\t%d\tTrial:\t%d\tCycle:\t%d\tName:\t%v\t\t\t", ss.TrainEnv.Run.Cur, ss.TrainEnv.Epoch.Cur, ss.TestEnv.Trial.Cur, ss.Time.Cycle, ss.TestEnv.String())
+		return fmt.Sprintf("Run:\t%d\tEpoch:\t%d\tTrial:\t%d\tCycle:\t%d\tName:\t%v\t\t\t", ss.TrainEnv.Run.Cur, ss.TrainEnv.Epoch.Cur, ss.TestEnv.Trial.Cur, ss.Time.Cycle, ss.TestEnv.String(ss.InpTarg, ss.InpLayTarg))
 	}
 }
 
@@ -402,6 +402,67 @@ func (ss *Sim) AlphaCyc(train bool) {
 					ss.UpdateView(train)
 				}
 			}
+		}
+	}
+
+	if train {
+		ss.Net.DWt()
+	}
+	if ss.ViewOn && viewUpdt == leabra.AlphaCycle {
+		ss.UpdateView(train)
+	}
+	if !train {
+		ss.TstCycPlot.GoUpdate() // make sure up-to-date at end
+	}
+}
+
+// Second version of AlphaCyc function for use in hippocampus
+func (ss *Sim) AlphaCycHip(train bool) {
+	// ss.Win.PollEvents() // this can be used instead of running in a separate goroutine
+	viewUpdt := ss.TrainUpdt
+	if !train {
+		viewUpdt = ss.TestUpdt
+	}
+
+	ss.Net.AlphaCycInit()
+	ss.Time.AlphaCycStart()
+	for qtr := 0; qtr < 4; qtr++ {
+		for cyc := 0; cyc < ss.Time.CycPerQtr; cyc++ {
+			ss.Net.Cycle(&ss.Time)
+			if !train {
+				ss.LogTstCyc(ss.TstCycLog, ss.Time.Cycle)
+			}
+			ss.Time.CycleInc()
+			if ss.ViewOn {
+				switch viewUpdt {
+				case leabra.Cycle:
+					if cyc != ss.Time.CycPerQtr-1 { // will be updated by quarter
+						ss.UpdateView(train)
+					}
+				case leabra.FastSpike:
+					if (cyc+1)%10 == 0 {
+						ss.UpdateView(train)
+					}
+				}
+			}
+		}
+		ss.Net.QuarterFinal(&ss.Time)
+		ss.Time.QuarterInc()
+		if ss.ViewOn {
+			switch {
+			case viewUpdt <= leabra.Quarter:
+				ss.UpdateView(train)
+			case viewUpdt == leabra.Phase:
+				if qtr >= 2 {
+					ss.UpdateView(train)
+				}
+			}
+		}
+		if qtr >= 2 {
+			inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
+			inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
+			inp1.SetType(emer.Compare)
+			inp2.SetType(emer.Compare)
 		}
 	}
 
@@ -487,7 +548,11 @@ func (ss *Sim) TrainTrial() {
 		dist.SetType(emer.Target)
 	}
 	ss.ApplyInputs(&ss.TrainEnv)
-	ss.AlphaCyc(true)   // train
+	if epc > 75 {
+		ss.AlphaCycHip(false) // don't train for hippocampus
+	} else {
+		ss.AlphaCyc(true)
+	}
 	ss.TrialStats(true) // accumulate
 }
 
@@ -952,7 +1017,7 @@ func (ss *Sim) LogTstTrl(dt *etable.Table) {
 	dt.SetCellFloat("Run", row, float64(ss.TrainEnv.Run.Cur))
 	dt.SetCellFloat("Epoch", row, float64(epc))
 	dt.SetCellFloat("Trial", row, float64(trl))
-	dt.SetCellString("TrialName", row, ss.TestEnv.String())
+	dt.SetCellString("TrialName", row, ss.TestEnv.String(ss.InpTarg, ss.InpLayTarg))
 	dt.SetCellFloat("Err", row, ss.TrlErr)
 	dt.SetCellFloat("SSE", row, ss.TrlSSE)
 	dt.SetCellFloat("AvgSSE", row, ss.TrlAvgSSE)

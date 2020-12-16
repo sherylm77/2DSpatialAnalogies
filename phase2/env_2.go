@@ -115,8 +115,18 @@ func (ev *ExEnv) Actions() env.Elements {
 }
 
 // String returns the current state as a string
-func (ev *ExEnv) String() string {
-	return fmt.Sprintf("Pt")
+func (ev *ExEnv) String(isInputTarget bool, whichInput int) string {
+	state := ""
+	if isInputTarget {
+		if whichInput == 1 {
+			state = "Input 1 Target"
+		} else {
+			state = "Input 2 Target"
+		}
+	} else {
+		state = "Distance Target"
+	}
+	return fmt.Sprintf(state)
 }
 
 // Init is called to restart environment
