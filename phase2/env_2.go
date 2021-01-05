@@ -36,6 +36,9 @@ type ExEnv struct {
 	DistVal    float32
 	Inp1Val    float32
 	Inp2Val    float32
+	HipTable   map[string]etensor.Float32
+	Face1      string
+	Face2      string
 	Run        env.Ctr `view:"inline" desc:"current run of model as provided during Init"`
 	Epoch      env.Ctr `view:"inline" desc:"number of times through Seq.Max number of sequences"`
 	Trial      env.Ctr `view:"inline" desc:"trial increments over input states -- could add Event as a lower level"`
@@ -74,6 +77,17 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Distance.SetShape([]int{ev.NDistUnits}, nil, []string{"Distance"})
 	ev.Input1.SetShape([]int{sz}, nil, []string{"Input1"})
 	ev.Input2.SetShape([]int{sz}, nil, []string{"Input2"})
+
+	ev.HipTable = make(map[string]etensor.Float32)
+	var a etensor.Float32
+	ev.HipTable["A"] = a
+	var b etensor.Float32
+	ev.HipTable["B"] = b
+	var c etensor.Float32
+	ev.HipTable["C"] = c
+	var d etensor.Float32
+	ev.HipTable["D"] = d
+
 }
 
 func (ev *ExEnv) Validate() error {
@@ -126,6 +140,7 @@ func (ev *ExEnv) String(isInputTarget bool, whichInput int) string {
 	} else {
 		state = "Distance Target"
 	}
+	state += " Face " + ev.Face1 + " Face " + ev.Face2
 	return fmt.Sprintf(state)
 }
 
@@ -143,9 +158,29 @@ func (ev *ExEnv) Init(run int) {
 
 // NewPoint generates a new point and sets state accordingly
 func (ev *ExEnv) NewPoint() {
-	input1 := rand.Intn(int(ev.MaxInp))
-	input2 := rand.Intn(int(ev.MaxInp))
+	input1 := rand.Intn(int(4)) //rand.Intn(int(ev.MaxInp))
+	input2 := rand.Intn(int(4)) //rand.Intn(int(ev.MaxInp))
 	distance := input2 - input1
+	switch input1 {
+	case 0:
+		ev.Face1 = "A"
+	case 1:
+		ev.Face1 = "B"
+	case 2:
+		ev.Face1 = "C"
+	case 3:
+		ev.Face1 = "D"
+	}
+	switch input2 {
+	case 0:
+		ev.Face2 = "A"
+	case 1:
+		ev.Face2 = "B"
+	case 2:
+		ev.Face2 = "C"
+	case 3:
+		ev.Face2 = "D"
+	}
 
 	ev.Input1Pop.Encode(&ev.Input1.Values, float32(input1), int(ev.MaxInp), false)
 	ev.Input2Pop.Encode(&ev.Input2.Values, float32(input2), int(ev.MaxInp), false)

@@ -465,6 +465,12 @@ func (ss *Sim) AlphaCycHip(train bool) {
 			inp2.SetType(emer.Compare)
 		}
 	}
+	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
+	inp1tsr := ss.ValsTsr(inp1.Nm)
+	inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
+	inp2tsr := ss.ValsTsr(inp2.Nm)
+	ss.TrainEnv.HipTable[ss.TrainEnv.Face1] = *inp1tsr
+	ss.TrainEnv.HipTable[ss.TrainEnv.Face2] = *inp2tsr
 
 	if train {
 		ss.Net.DWt()
@@ -548,7 +554,7 @@ func (ss *Sim) TrainTrial() {
 		dist.SetType(emer.Target)
 	}
 	ss.ApplyInputs(&ss.TrainEnv)
-	if epc > 75 {
+	if epc > 30 {
 		ss.AlphaCycHip(false) // don't train for hippocampus
 	} else {
 		ss.AlphaCyc(true)
