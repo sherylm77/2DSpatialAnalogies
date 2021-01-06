@@ -554,7 +554,7 @@ func (ss *Sim) TrainTrial() {
 		dist.SetType(emer.Target)
 	}
 	ss.ApplyInputs(&ss.TrainEnv)
-	if epc > 30 {
+	if epc > 5 {
 		ss.AlphaCycHip(false) // don't train for hippocampus
 	} else {
 		ss.AlphaCyc(true)
