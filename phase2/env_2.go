@@ -129,7 +129,7 @@ func (ev *ExEnv) Actions() env.Elements {
 }
 
 // String returns the current state as a string
-func (ev *ExEnv) String(isInputTarget bool, whichInput int) string {
+func (ev *ExEnv) String(isInputTarget bool, whichInput int, face1 string, face2 string) string {
 	state := ""
 	if isInputTarget {
 		if whichInput == 1 {
@@ -140,7 +140,7 @@ func (ev *ExEnv) String(isInputTarget bool, whichInput int) string {
 	} else {
 		state = "Distance Target"
 	}
-	state += " Face " + ev.Face1 + " Face " + ev.Face2
+	state += " Face " + face1 + " Face " + face2
 	return fmt.Sprintf(state)
 }
 
