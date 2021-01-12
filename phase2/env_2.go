@@ -36,7 +36,7 @@ type ExEnv struct {
 	DistVal    float32
 	Inp1Val    float32
 	Inp2Val    float32
-	HipTable   map[string]etensor.Float32
+	HipTable   map[string]*etensor.Float32
 	Face1      string
 	Face2      string
 	Run        env.Ctr `view:"inline" desc:"current run of model as provided during Init"`
@@ -78,15 +78,11 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Input1.SetShape([]int{sz}, nil, []string{"Input1"})
 	ev.Input2.SetShape([]int{sz}, nil, []string{"Input2"})
 
-	ev.HipTable = make(map[string]etensor.Float32)
-	var a etensor.Float32
-	ev.HipTable["A"] = a
-	var b etensor.Float32
-	ev.HipTable["B"] = b
-	var c etensor.Float32
-	ev.HipTable["C"] = c
-	var d etensor.Float32
-	ev.HipTable["D"] = d
+	ev.HipTable = make(map[string]*etensor.Float32)
+	ev.HipTable["A"] = &etensor.Float32{}
+	ev.HipTable["B"] = &etensor.Float32{}
+	ev.HipTable["C"] = &etensor.Float32{}
+	ev.HipTable["D"] = &etensor.Float32{}
 
 }
 
