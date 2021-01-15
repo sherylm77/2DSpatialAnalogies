@@ -17,7 +17,6 @@ import (
 
 	"github.com/emer/emergent/emer"
 	"github.com/emer/emergent/env"
-	"github.com/emer/emergent/erand"
 	"github.com/emer/emergent/netview"
 	"github.com/emer/emergent/params"
 	"github.com/emer/emergent/prjn"
@@ -487,7 +486,7 @@ func (ss *Sim) AlphaCycHip(train bool) {
 // It is good practice to have this be a separate method with appropriate
 // args so that it can be used for various different contexts
 // (training, testing, etc).
-func (ss *Sim) ApplyInputs(en env.Env) {
+func (ss *Sim) ApplyInputs(en env.Env, hip bool) {
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
@@ -500,15 +499,23 @@ func (ss *Sim) ApplyInputs(en env.Env) {
 		}
 	}
 
-	// Input1 Face Pats
 	ly := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
-	pats := ss.TrainEnv.HipTable[ss.TrainEnv.Face1]
-	ly.ApplyExt((etensor.Tensor(pats)))
+	ly2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
+	if hip {
+		pats := ss.TrainEnv.HipTable[ss.TrainEnv.Face1]
+		ly.ApplyExt((etensor.Tensor(pats)))
 
-	// Input2 Face Pats
-	ly = ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
-	pats = ss.TrainEnv.HipTable[ss.TrainEnv.Face2]
-	ly.ApplyExt((etensor.Tensor(pats)))
+		// Input2 Face Pats
+		pats2 := ss.TrainEnv.HipTable[ss.TrainEnv.Face2]
+		ly2.ApplyExt((etensor.Tensor(pats2)))
+	} else {
+		pats := en.State(ly.Nm)
+		ly.ApplyExt(pats)
+
+		// Input2 Face Pats
+		pats2 := en.State(ly2.Nm)
+		ly2.ApplyExt(pats2)
+	}
 }
 
 // TrainTrial runs one trial of training using TrainEnv
@@ -543,7 +550,7 @@ func (ss *Sim) TrainTrial() {
 			}
 		}
 	}
-	ss.InpTarg = erand.BoolProb(0.5, -1)
+	ss.InpTarg = true //erand.BoolProb(0.5, -1) //true //always make Input target layer //
 
 	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
 	inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
@@ -563,10 +570,12 @@ func (ss *Sim) TrainTrial() {
 		inp2.SetType(emer.Input)
 		dist.SetType(emer.Target)
 	}
-	ss.ApplyInputs(&ss.TrainEnv)
+	//ss.ApplyInputs(&ss.TrainEnv)
 	if epc > 5 {
+		ss.ApplyInputs(&ss.TrainEnv, true)
 		ss.AlphaCycHip(false) // don't train for hippocampus
 	} else {
+		ss.ApplyInputs(&ss.TrainEnv, false)
 		ss.AlphaCyc(true)
 	}
 	ss.TrialStats(true) // accumulate
@@ -772,7 +781,7 @@ func (ss *Sim) TestTrial(returnOnChg bool) {
 		}
 	}
 
-	ss.ApplyInputs(&ss.TestEnv)
+	ss.ApplyInputs(&ss.TestEnv, false)
 	ss.AlphaCyc(false)   // !train
 	ss.TrialStats(false) // !accumulate
 	ss.LogTstTrl(ss.TstTrlLog)

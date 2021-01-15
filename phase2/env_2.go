@@ -155,7 +155,13 @@ func (ev *ExEnv) Init(run int) {
 // NewPoint generates a new point and sets state accordingly
 func (ev *ExEnv) NewPoint() {
 	input1 := rand.Intn(int(4)) //rand.Intn(int(ev.MaxInp))
-	input2 := rand.Intn(int(4)) //rand.Intn(int(ev.MaxInp))
+	input2 := input1
+	for {
+		input2 = rand.Intn(int(4))
+		if input2 != input1 {
+			break
+		}
+	}
 	distance := input2 - input1
 	switch input1 {
 	case 0:
