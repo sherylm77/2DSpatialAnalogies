@@ -462,12 +462,16 @@ func (ss *Sim) AlphaCycHip(train bool) {
 			inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
 			inp1.SetType(emer.Compare)
 			inp2.SetType(emer.Compare)
+			ss.Net.InitExt()
+			ss.ApplyInputs(&ss.TrainEnv, true)
 		}
 	}
 	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
 	inp1tsr := ss.ValsTsr(inp1.Nm)
+	inp1.UnitValsTensor(inp1tsr, "Act")
 	inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
 	inp2tsr := ss.ValsTsr(inp2.Nm)
+	inp2.UnitValsTensor(inp2tsr, "Act")
 	ss.TrainEnv.HipTable[ss.TrainEnv.Face1] = inp1tsr
 	ss.TrainEnv.HipTable[ss.TrainEnv.Face2] = inp2tsr
 
@@ -555,6 +559,7 @@ func (ss *Sim) TrainTrial() {
 	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
 	inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
 	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
+
 	if ss.InpTarg {
 		ss.InpLayTarg = rand.Intn(2) + 1 // if 1, then Inp1 is Target, else if 2, then Inp2 is Target
 		dist.SetType(emer.Input)
@@ -572,6 +577,9 @@ func (ss *Sim) TrainTrial() {
 	}
 	//ss.ApplyInputs(&ss.TrainEnv)
 	if epc > 5 {
+		inp1.SetType(emer.Input)
+		inp2.SetType(emer.Input)
+		dist.SetType(emer.Input)
 		ss.ApplyInputs(&ss.TrainEnv, true)
 		ss.AlphaCycHip(false) // don't train for hippocampus
 	} else {
