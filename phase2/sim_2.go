@@ -462,8 +462,8 @@ func (ss *Sim) AlphaCycHip(train bool) {
 			inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
 			inp1.SetType(emer.Compare)
 			inp2.SetType(emer.Compare)
-			ss.Net.InitExt()
-			ss.ApplyInputs(&ss.TrainEnv, true)
+			//ss.Net.InitExt()
+			//ss.ApplyInputs(&ss.TrainEnv, true)
 		}
 	}
 	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
