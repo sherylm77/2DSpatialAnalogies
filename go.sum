@@ -66,12 +66,16 @@ github.com/dlclark/regexp2 v1.4.0/go.mod h1:2pZnwuY/m+8K6iRw6wQdMtk+rH5tNGR1i55k
 github.com/emer/emergent v1.1.13/go.mod h1:VUAhHTyRN7nhaOVAKnYQ8YHr1J7Ha+MhMCQOG+Ttdec=
 github.com/emer/emergent v1.1.15 h1:vCQdDjHmsb2rCc+QH/D+/WtjWEFb5g9DG9SmPZiS8pQ=
 github.com/emer/emergent v1.1.15/go.mod h1:IUxrBXmYPycehJjPnBXlUlWwmv+Ay1GvYnWz9TQkLHY=
+github.com/emer/emergent v1.1.16 h1:G1Ogr/JYl6wOQMCzSSKTRZQzTbZ2VhaiNe2QV6R/rJs=
+github.com/emer/emergent v1.1.16/go.mod h1:Kz87UYU6wZNieVRoWdo/IqkwRMtmTUI7ciDWQqu+Xyk=
 github.com/emer/empi v1.0.9/go.mod h1:T+NJAeHlVy9ETmQjaL+9pUV/k1TwOc6rKQ0tPWJrvWs=
 github.com/emer/etable v1.0.18/go.mod h1:/qOVnq0jL+JWu3HBepfX92ktUMlWiog7a3Uxsmk5Y7Q=
 github.com/emer/etable v1.0.21 h1:CYh1PBNIseX6BZow4epEDCxWXL+W0jY3fKPUWiRLMUA=
 github.com/emer/etable v1.0.21/go.mod h1:Y3OVQh0QG8Wgt5eTkV0Gg/RAjhUIFhkR9wrwqMO4kqs=
 github.com/emer/leabra v1.1.25 h1:ArM1pKk3p2+aGc7lhlGzTpPnWwD4t2rn0cxNWSnceH8=
 github.com/emer/leabra v1.1.25/go.mod h1:LLfAZvucnw94mg2MioWn7NQMdMIhynB4F4oSkG1FKLg=
+github.com/emer/leabra v1.1.27 h1:Sn99WjNrYa/r0CKM31MqW3T0iNQbDA6UFMewx+JTxNM=
+github.com/emer/leabra v1.1.27/go.mod h1:Fndjj/euG861jMtykDhJWz8isww2poULT0XIklgGe1Q=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
