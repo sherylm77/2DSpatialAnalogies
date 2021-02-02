@@ -462,8 +462,8 @@ func (ss *Sim) AlphaCycHip(train bool) {
 			inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
 			inp1.SetType(emer.Compare)
 			inp2.SetType(emer.Compare)
-			//ss.Net.InitExt()
-			//ss.ApplyInputs(&ss.TrainEnv, true)
+			ss.Net.InitExt()
+			ss.ApplyInputs(&ss.TrainEnv, true)
 		}
 	}
 	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
@@ -514,11 +514,15 @@ func (ss *Sim) ApplyInputs(en env.Env, hip bool) {
 		ly2.ApplyExt((etensor.Tensor(pats2)))
 	} else {
 		pats := en.State(ly.Nm)
-		ly.ApplyExt(pats)
+		if pats != nil {
+			ly.ApplyExt(pats)
+		}
 
 		// Input2 Face Pats
 		pats2 := en.State(ly2.Nm)
-		ly2.ApplyExt(pats2)
+		if pats2 != nil {
+			ly2.ApplyExt(pats2)
+		}
 	}
 }
 
