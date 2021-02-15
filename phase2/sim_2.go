@@ -88,6 +88,18 @@ var ParamSets = params.Sets{
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.5",
 				}},
+			{Sel: ".Hidden", Desc: "Noise for hidden layers",
+				Params: params.Params{
+					"Layer.Act.Noise.Dist": "Gaussian",
+					"Layer.Act.Noise.Var":  "0.005",
+					"Layer.Act.Noise.Type": "GeNoise",
+				}},
+			{Sel: ".Input", Desc: "Noise for hidden layers",
+				Params: params.Params{
+					"Layer.Act.Noise.Dist": "Gaussian",
+					"Layer.Act.Noise.Var":  "0.005",
+					"Layer.Act.Noise.Type": "GeNoise",
+				}},
 		},
 	}},
 }
@@ -460,10 +472,12 @@ func (ss *Sim) AlphaCycHip(train bool) {
 		if qtr >= 2 {
 			inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
 			inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
+			dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
 			inp1.SetType(emer.Compare)
 			inp2.SetType(emer.Compare)
+			dist.SetType(emer.Input)
 			ss.Net.InitExt()
-			ss.ApplyInputs(&ss.TrainEnv, true)
+			ss.ApplyInputs(&ss.TrainEnv, true, true)
 		}
 	}
 	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
@@ -490,16 +504,18 @@ func (ss *Sim) AlphaCycHip(train bool) {
 // It is good practice to have this be a separate method with appropriate
 // args so that it can be used for various different contexts
 // (training, testing, etc).
-func (ss *Sim) ApplyInputs(en env.Env, hip bool) {
+func (ss *Sim) ApplyInputs(en env.Env, hip bool, applyDist bool) {
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	lays := []string{"Distance"}
-	for _, lnm := range lays {
-		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
-		pats := en.State(ly.Nm)
-		if pats != nil {
-			ly.ApplyExt(pats)
+	if applyDist {
+		lays := []string{"Distance"}
+		for _, lnm := range lays {
+			ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
+			pats := en.State(ly.Nm)
+			if pats != nil {
+				ly.ApplyExt(pats)
+			}
 		}
 	}
 
@@ -583,11 +599,11 @@ func (ss *Sim) TrainTrial() {
 	if epc > 5 {
 		inp1.SetType(emer.Input)
 		inp2.SetType(emer.Input)
-		dist.SetType(emer.Input)
-		ss.ApplyInputs(&ss.TrainEnv, true)
+		dist.SetType(emer.Compare)
+		ss.ApplyInputs(&ss.TrainEnv, true, false)
 		ss.AlphaCycHip(false) // don't train for hippocampus
 	} else {
-		ss.ApplyInputs(&ss.TrainEnv, false)
+		ss.ApplyInputs(&ss.TrainEnv, false, true)
 		ss.AlphaCyc(true)
 	}
 	ss.TrialStats(true) // accumulate
@@ -793,7 +809,7 @@ func (ss *Sim) TestTrial(returnOnChg bool) {
 		}
 	}
 
-	ss.ApplyInputs(&ss.TestEnv, false)
+	ss.ApplyInputs(&ss.TestEnv, false, true)
 	ss.AlphaCyc(false)   // !train
 	ss.TrialStats(false) // !accumulate
 	ss.LogTstTrl(ss.TstTrlLog)
