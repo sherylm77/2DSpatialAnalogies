@@ -84,6 +84,13 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.HipTable["C"] = &etensor.Float32{}
 	ev.HipTable["D"] = &etensor.Float32{}
 
+	for _, tsr := range ev.HipTable {
+		tsr.SetShape([]int{sz}, nil, []string{""})
+		for i := range tsr.Values {
+			tsr.Values[i] = rand.Float32()
+		}
+	}
+
 }
 
 func (ev *ExEnv) Validate() error {
