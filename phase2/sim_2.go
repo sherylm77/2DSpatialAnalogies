@@ -260,8 +260,8 @@ func (ss *Sim) ConfigEnv() {
 
 func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.InitName(net, "EnvSim")
-	inp1 := net.AddLayer2D("Input 1", 1, ss.Size, emer.Input)
-	inp2 := net.AddLayer2D("Input 2", 1, ss.Size, emer.Input)
+	inp1 := net.AddLayer2D("Input 1", 1, ss.TrainEnv.NInpUnits, emer.Input)
+	inp2 := net.AddLayer2D("Input 2", 1, ss.TrainEnv.NInpUnits, emer.Input)
 	//hid1 := net.AddLayer2D("Hidden 1", 15, 15, emer.Hidden)
 	//hid2 := net.AddLayer2D("Hidden 2", 15, 15, emer.Hidden)
 	combhid := net.AddLayer2D("Combined Hidden", 9, 9, emer.Hidden)

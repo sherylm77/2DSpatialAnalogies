@@ -27,6 +27,7 @@ type ExEnv struct {
 	MinInp     float32
 	MaxInp     float32
 	NDistUnits int
+	NInpUnits  int
 	DistPop    popcode.OneD `desc:"population encoding of distance value"`
 	Input1Pop  popcode.OneD
 	Input2Pop  popcode.OneD
@@ -57,8 +58,9 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.DistPop.Min = ev.MinDist
 	ev.DistPop.Max = ev.MaxDist // + 2
 
-	ev.MaxInp = float32(sz)
+	ev.MaxInp = float32(4) // float32(sz)
 	ev.MinInp = -2
+	ev.NInpUnits = 10
 	ev.Input1Pop.Defaults()
 	ev.Input2Pop.Defaults()
 	ev.Input1Pop.Min = ev.MinInp
@@ -75,8 +77,8 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Trial.Max = ntrls
 
 	ev.Distance.SetShape([]int{ev.NDistUnits}, nil, []string{"Distance"})
-	ev.Input1.SetShape([]int{sz}, nil, []string{"Input1"})
-	ev.Input2.SetShape([]int{sz}, nil, []string{"Input2"})
+	ev.Input1.SetShape([]int{ev.NInpUnits}, nil, []string{"Input1"})
+	ev.Input2.SetShape([]int{ev.NInpUnits}, nil, []string{"Input2"})
 
 	ev.HipTable = make(map[string]*etensor.Float32)
 	ev.HipTable["A"] = &etensor.Float32{}
@@ -85,7 +87,7 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.HipTable["D"] = &etensor.Float32{}
 
 	for _, tsr := range ev.HipTable {
-		tsr.SetShape([]int{sz}, nil, []string{""})
+		tsr.SetShape([]int{ev.NInpUnits}, nil, []string{""})
 		for i := range tsr.Values {
 			tsr.Values[i] = rand.Float32()
 		}
@@ -191,8 +193,8 @@ func (ev *ExEnv) NewPoint() {
 		ev.Face2 = "D"
 	}
 
-	ev.Input1Pop.Encode(&ev.Input1.Values, float32(input1), int(ev.MaxInp), false)
-	ev.Input2Pop.Encode(&ev.Input2.Values, float32(input2), int(ev.MaxInp), false)
+	ev.Input1Pop.Encode(&ev.Input1.Values, float32(input1), int(ev.NInpUnits), false)
+	ev.Input2Pop.Encode(&ev.Input2.Values, float32(input2), int(ev.NInpUnits), false)
 	ev.DistPop.Encode(&ev.Distance.Values, float32(distance), ev.NDistUnits, false)
 	ev.DistVal = float32(distance)
 	ev.Inp1Val = float32(input1)
