@@ -69,7 +69,7 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Input2Pop.Max = float32(ev.MaxInp) * 1.3
 	ev.Input1Pop.Sigma = 0.1
 	ev.Input2Pop.Sigma = 0.1
-	ev.DistPop.Sigma = 0.05
+	ev.DistPop.Sigma = 0.1
 
 	currentTime := time.Now()
 	rand.Seed(int64(currentTime.Unix()))
