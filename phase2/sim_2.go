@@ -136,55 +136,61 @@ type Sim struct {
 	LayStatNms   []string          `desc:"names of layers to collect more detailed stats on (avg act, etc)"`
 
 	// statistics: note use float64 as that is best for etable.Table
-	InpTarg       bool    `Determines if an Input layer is a Target or not`
-	InpLayTarg    int     `Which Input layer is a target, if neither then 0`
-	TrlErr        float64 `inactive:"+" desc:"1 if trial was error, 0 if correct -- based on SSE = 0 (subject to .5 unit-wise tolerance)"`
-	TrlSSE        float64 `inactive:"+" desc:"current trial's sum squared error"`
-	TrlAvgSSE     float64 `inactive:"+" desc:"current trial's average sum squared error"`
-	TrlCosDiff    float64 `inactive:"+" desc:"current trial's cosine difference"`
-	EpcSSE        float64 `inactive:"+" desc:"last epoch's total sum squared error"`
-	EpcAvgSSE     float64 `inactive:"+" desc:"last epoch's average sum squared error (average over trials, and over units within layer)"`
-	EpcPctErr     float64 `inactive:"+" desc:"last epoch's average TrlErr"`
-	EpcPctCor     float64 `inactive:"+" desc:"1 - last epoch's average TrlErr"`
-	EpcCosDiff    float64 `inactive:"+" desc:"last epoch's average cosine difference for output layer (a normalized error measure, maximum of 1 when the minus phase exactly matches the plus)"`
-	EpcDistError  float64
-	EpcInp1Error  float64
-	EpcInp2Error  float64
-	EpcPerTrlMSec float64 `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
-	FirstZero     int     `inactive:"+" desc:"epoch at when SSE first went to zero"`
-	NZero         int     `inactive:"+" desc:"number of epochs in a row with zero SSE"`
-	DistanceError float64
-	Input1Error   float64
-	Input2Error   float64
+	InpTarg        bool    `Determines if an Input layer is a Target or not`
+	InpLayTarg     int     `Which Input layer is a target, if neither then 0`
+	TrlErr         float64 `inactive:"+" desc:"1 if trial was error, 0 if correct -- based on SSE = 0 (subject to .5 unit-wise tolerance)"`
+	TrlSSE         float64 `inactive:"+" desc:"current trial's sum squared error"`
+	TrlAvgSSE      float64 `inactive:"+" desc:"current trial's average sum squared error"`
+	TrlCosDiff     float64 `inactive:"+" desc:"current trial's cosine difference"`
+	TrlCosDiffInp1 float64
+	TrlCosDiffInp2 float64
+	EpcSSE         float64 `inactive:"+" desc:"last epoch's total sum squared error"`
+	EpcAvgSSE      float64 `inactive:"+" desc:"last epoch's average sum squared error (average over trials, and over units within layer)"`
+	EpcPctErr      float64 `inactive:"+" desc:"last epoch's average TrlErr"`
+	EpcPctCor      float64 `inactive:"+" desc:"1 - last epoch's average TrlErr"`
+	EpcCosDiff     float64 `inactive:"+" desc:"last epoch's average cosine difference for output layer (a normalized error measure, maximum of 1 when the minus phase exactly matches the plus)"`
+	EpcCosDiffInp1 float64
+	EpcCosDiffInp2 float64
+	EpcDistError   float64
+	EpcInp1Error   float64
+	EpcInp2Error   float64
+	EpcPerTrlMSec  float64 `inactive:"+" desc:"how long did the epoch take per trial in wall-clock milliseconds"`
+	FirstZero      int     `inactive:"+" desc:"epoch at when SSE first went to zero"`
+	NZero          int     `inactive:"+" desc:"number of epochs in a row with zero SSE"`
+	DistanceError  float64
+	Input1Error    float64
+	Input2Error    float64
 
 	// internal state - view:"-"
-	TargDist     float32
-	SumErr       float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
-	SumSSE       float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
-	SumAvgSSE    float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
-	SumCosDiff   float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
-	SumDistError float64
-	SumInp1Error float64
-	SumInp2Error float64
-	Win          *gi.Window                  `view:"-" desc:"main GUI window"`
-	NetView      *netview.NetView            `view:"-" desc:"the network viewer"`
-	ToolBar      *gi.ToolBar                 `view:"-" desc:"the master toolbar"`
-	TrnEpcPlot   *eplot.Plot2D               `view:"-" desc:"the training epoch plot"`
-	TstEpcPlot   *eplot.Plot2D               `view:"-" desc:"the testing epoch plot"`
-	TstTrlPlot   *eplot.Plot2D               `view:"-" desc:"the test-trial plot"`
-	TstCycPlot   *eplot.Plot2D               `view:"-" desc:"the test-cycle plot"`
-	RunPlot      *eplot.Plot2D               `view:"-" desc:"the run plot"`
-	TrnEpcFile   *os.File                    `view:"-" desc:"log file"`
-	RunFile      *os.File                    `view:"-" desc:"log file"`
-	ValsTsrs     map[string]*etensor.Float32 `view:"-" desc:"for holding layer values"`
-	SaveWts      bool                        `view:"-" desc:"for command-line run only, auto-save final weights after each run"`
-	NoGui        bool                        `view:"-" desc:"if true, runing in no GUI mode"`
-	LogSetParams bool                        `view:"-" desc:"if true, print message for all params that are set"`
-	IsRunning    bool                        `view:"-" desc:"true if sim is running"`
-	StopNow      bool                        `view:"-" desc:"flag to stop running"`
-	NeedsNewRun  bool                        `view:"-" desc:"flag to initialize NewRun if last one finished"`
-	RndSeed      int64                       `view:"-" desc:"the current random seed"`
-	LastEpcTime  time.Time                   `view:"-" desc:"timer for last epoch"`
+	TargDist       float32
+	SumErr         float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
+	SumSSE         float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
+	SumAvgSSE      float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
+	SumCosDiff     float64 `view:"-" inactive:"+" desc:"sum to increment as we go through epoch"`
+	SumCosDiffInp1 float64
+	SumCosDiffInp2 float64
+	SumDistError   float64
+	SumInp1Error   float64
+	SumInp2Error   float64
+	Win            *gi.Window                  `view:"-" desc:"main GUI window"`
+	NetView        *netview.NetView            `view:"-" desc:"the network viewer"`
+	ToolBar        *gi.ToolBar                 `view:"-" desc:"the master toolbar"`
+	TrnEpcPlot     *eplot.Plot2D               `view:"-" desc:"the training epoch plot"`
+	TstEpcPlot     *eplot.Plot2D               `view:"-" desc:"the testing epoch plot"`
+	TstTrlPlot     *eplot.Plot2D               `view:"-" desc:"the test-trial plot"`
+	TstCycPlot     *eplot.Plot2D               `view:"-" desc:"the test-cycle plot"`
+	RunPlot        *eplot.Plot2D               `view:"-" desc:"the run plot"`
+	TrnEpcFile     *os.File                    `view:"-" desc:"log file"`
+	RunFile        *os.File                    `view:"-" desc:"log file"`
+	ValsTsrs       map[string]*etensor.Float32 `view:"-" desc:"for holding layer values"`
+	SaveWts        bool                        `view:"-" desc:"for command-line run only, auto-save final weights after each run"`
+	NoGui          bool                        `view:"-" desc:"if true, runing in no GUI mode"`
+	LogSetParams   bool                        `view:"-" desc:"if true, print message for all params that are set"`
+	IsRunning      bool                        `view:"-" desc:"true if sim is running"`
+	StopNow        bool                        `view:"-" desc:"flag to stop running"`
+	NeedsNewRun    bool                        `view:"-" desc:"flag to initialize NewRun if last one finished"`
+	RndSeed        int64                       `view:"-" desc:"the current random seed"`
+	LastEpcTime    time.Time                   `view:"-" desc:"timer for last epoch"`
 }
 
 // this registers this Sim Type and gives it properties that e.g.,
@@ -641,6 +647,8 @@ func (ss *Sim) InitStats() {
 	ss.SumSSE = 0
 	ss.SumAvgSSE = 0
 	ss.SumCosDiff = 0
+	ss.SumCosDiffInp1 = 0
+	ss.SumCosDiffInp2 = 0
 	ss.SumDistError = 0
 	ss.SumInp1Error = 0
 	ss.SumInp2Error = 0
@@ -654,6 +662,8 @@ func (ss *Sim) InitStats() {
 	ss.EpcAvgSSE = 0
 	ss.EpcPctErr = 0
 	ss.EpcCosDiff = 0
+	ss.EpcCosDiffInp1 = 0
+	ss.EpcCosDiffInp2 = 0
 }
 
 // TrialStats computes the trial-level statistics and adds them to the epoch accumulators if
@@ -662,9 +672,12 @@ func (ss *Sim) InitStats() {
 // different time-scales over which stats could be accumulated etc.
 // You can also aggregate directly from log data, as is done for testing stats
 func (ss *Sim) TrialStats(accum bool) {
+	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
+	inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
+	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
+
 	if ss.InpTarg {
 		if ss.InpLayTarg == 1 { // Inp1 is Target
-			inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
 			ss.TrlCosDiff = float64(inp1.CosDiff.Cos)
 			inp1_s, inp1_a := inp1.MSE(0.5)
 			ss.TrlSSE = inp1_s
@@ -677,7 +690,6 @@ func (ss *Sim) TrialStats(accum bool) {
 			inp1Error := math.Abs(float64(inp1Val - targInp1))
 			ss.Input1Error = float64(inp1Error) / float64(ss.TrainEnv.MaxInp)
 		} else { // Inp2 is Target
-			inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
 			ss.TrlCosDiff = float64(inp2.CosDiff.Cos)
 			inp2_s, inp2_a := inp2.MSE(0.5)
 			ss.TrlSSE = inp2_s
@@ -691,19 +703,21 @@ func (ss *Sim) TrialStats(accum bool) {
 			ss.Input2Error = float64(inp2Error) / float64(ss.TrainEnv.MaxInp)
 		}
 	} else { //Distance is Target
-		dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
 		ss.TrlCosDiff = float64(dist.CosDiff.Cos)
 		dist_s, dist_a := dist.MSE(0.5)
 		ss.TrlSSE = dist_s
 		ss.TrlAvgSSE = dist_a
-
-		dtsr := ss.ValsTsr(dist.Nm)
-		dist.UnitValsTensor(dtsr, "ActM")
-		distVal := ss.TrainEnv.DistPop.Decode(dtsr.Values)
-		targDist := ss.TrainEnv.DistVal
-		distError := math.Abs(float64(distVal - targDist))
-		ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
 	}
+
+	ss.TrlCosDiffInp1 = float64(inp1.CosDiff.Cos)
+	ss.TrlCosDiffInp2 = float64(inp2.CosDiff.Cos)
+
+	dtsr := ss.ValsTsr(dist.Nm)
+	dist.UnitValsTensor(dtsr, "ActM")
+	distVal := ss.TrainEnv.DistPop.Decode(dtsr.Values)
+	targDist := ss.TrainEnv.DistVal
+	distError := math.Abs(float64(distVal - targDist))
+	ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
 
 	if ss.TrlSSE > 0 {
 		ss.TrlErr = 1
@@ -715,6 +729,8 @@ func (ss *Sim) TrialStats(accum bool) {
 		ss.SumSSE += ss.TrlSSE
 		ss.SumAvgSSE += ss.TrlAvgSSE
 		ss.SumCosDiff += ss.TrlCosDiff
+		ss.SumCosDiffInp1 += ss.TrlCosDiffInp1
+		ss.SumCosDiffInp2 += ss.TrlCosDiffInp2
 		ss.SumDistError += ss.DistanceError
 		ss.SumInp1Error += ss.Input1Error
 		ss.SumInp2Error += ss.Input2Error
@@ -951,6 +967,10 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	ss.EpcPctCor = 1 - ss.EpcPctErr
 	ss.EpcCosDiff = ss.SumCosDiff / nt
 	ss.SumCosDiff = 0
+	ss.EpcCosDiffInp1 = ss.SumCosDiffInp1 / nt
+	ss.SumCosDiffInp1 = 0
+	ss.EpcCosDiffInp2 = ss.SumCosDiffInp2 / nt
+	ss.SumCosDiffInp2 = 0
 	ss.EpcDistError = ss.SumDistError / nt
 	ss.SumDistError = 0
 	ss.EpcInp1Error = ss.SumInp1Error / nt
@@ -981,6 +1001,8 @@ func (ss *Sim) LogTrnEpc(dt *etable.Table) {
 	dt.SetCellFloat("PctErr", row, ss.EpcPctErr)
 	dt.SetCellFloat("PctCor", row, ss.EpcPctCor)
 	dt.SetCellFloat("CosDiff", row, ss.EpcCosDiff)
+	dt.SetCellFloat("CosDiffInp1", row, ss.EpcCosDiffInp1)
+	dt.SetCellFloat("CosDiffInp2", row, ss.EpcCosDiffInp2)
 	dt.SetCellFloat("PerTrlMSec", row, ss.EpcPerTrlMSec)
 	dt.SetCellFloat("EpcDistError", row, ss.EpcDistError)
 	dt.SetCellFloat("EpcInp1Error", row, ss.EpcInp1Error)
@@ -1015,6 +1037,8 @@ func (ss *Sim) ConfigTrnEpcLog(dt *etable.Table) {
 		{"PctErr", etensor.FLOAT64, nil, nil},
 		{"PctCor", etensor.FLOAT64, nil, nil},
 		{"CosDiff", etensor.FLOAT64, nil, nil},
+		{"CosDiffInp1", etensor.FLOAT64, nil, nil},
+		{"CosDiffInp2", etensor.FLOAT64, nil, nil},
 		{"PerTrlMSec", etensor.FLOAT64, nil, nil},
 		{"EpcDistError", etensor.FLOAT64, nil, nil},
 		{"EpcInp1Error", etensor.FLOAT64, nil, nil},
@@ -1042,6 +1066,8 @@ func (ss *Sim) ConfigTrnEpcPlot(plt *eplot.Plot2D, dt *etable.Table) *eplot.Plot
 	plt.SetColParams("EpcDistError", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
 	plt.SetColParams("EpcInp1Error", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
 	plt.SetColParams("EpcInp2Error", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
+	plt.SetColParams("EpcCosDiffInp1", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
+	plt.SetColParams("EpcCosDiffInp2", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
 	plt.SetColParams("EpcAngError", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
 	plt.SetColParams("EpcEgoCosDiff", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
 	plt.SetColParams("EpcAlloCosDiff", eplot.On, eplot.FixMin, 0, eplot.FloatMax, 1)
