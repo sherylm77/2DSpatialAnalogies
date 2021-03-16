@@ -718,7 +718,7 @@ func (ss *Sim) TrialStats(accum bool) {
 	targDist := ss.TrainEnv.DistVal
 	distError := math.Abs(float64(distVal - targDist))
 	ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
-	
+
 	input1tsr := ss.ValsTsr(inp1.Nm)
 	inp1.UnitValsTensor(input1tsr, "ActM")
 	inp1Val := ss.TrainEnv.DistPop.Decode(input1tsr.Values)
@@ -729,7 +729,7 @@ func (ss *Sim) TrialStats(accum bool) {
 	input2tsr := ss.ValsTsr(inp2.Nm)
 	inp2.UnitValsTensor(input2tsr, "ActM")
 	inp2Val := ss.TrainEnv.DistPop.Decode(input2tsr.Values)
-	targInp2 := ss.TrainEnv.Inp1Val
+	targInp2 := ss.TrainEnv.Inp2Val
 	inp2Error := math.Abs(float64(inp2Val - targInp2))
 	ss.Input2Error = float64(inp2Error) / float64(ss.TrainEnv.MaxInp)
 

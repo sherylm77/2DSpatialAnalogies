@@ -58,15 +58,15 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.DistPop.Min = ev.MinDist
 	ev.DistPop.Max = ev.MaxDist // + 2
 
-	ev.MaxInp = float32(4) // float32(sz)
+	ev.MaxInp = float32(3) // float32(sz)
 	ev.MinInp = -2
 	ev.NInpUnits = 10
 	ev.Input1Pop.Defaults()
 	ev.Input2Pop.Defaults()
 	ev.Input1Pop.Min = ev.MinInp
-	ev.Input1Pop.Max = float32(ev.MaxInp) * 1.3
+	ev.Input1Pop.Max = float32(ev.MaxInp+1) * 1.3
 	ev.Input2Pop.Min = ev.MinInp
-	ev.Input2Pop.Max = float32(ev.MaxInp) * 1.3
+	ev.Input2Pop.Max = float32(ev.MaxInp+1) * 1.3
 	ev.Input1Pop.Sigma = 0.1
 	ev.Input2Pop.Sigma = 0.1
 	ev.DistPop.Sigma = 0.1
