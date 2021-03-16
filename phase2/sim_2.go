@@ -160,6 +160,8 @@ type Sim struct {
 	DistanceError  float64
 	Input1Error    float64
 	Input2Error    float64
+	Inp1Value      float64
+	Inp2Value      float64
 
 	// internal state - view:"-"
 	TargDist       float32
@@ -689,6 +691,7 @@ func (ss *Sim) TrialStats(accum bool) {
 			targInp1 := ss.TrainEnv.Inp1Val
 			inp1Error := math.Abs(float64(inp1Val - targInp1))
 			ss.Input1Error = float64(inp1Error) / float64(ss.TrainEnv.MaxInp)
+			ss.Inp1Value = float64(inp1Val)
 		} else { // Inp2 is Target
 			ss.TrlCosDiff = float64(inp2.CosDiff.Cos)
 			inp2_s, inp2_a := inp2.MSE(0.5)
@@ -701,6 +704,7 @@ func (ss *Sim) TrialStats(accum bool) {
 			targInp2 := ss.TrainEnv.Inp2Val
 			inp2Error := math.Abs(float64(inp2Val - targInp2))
 			ss.Input2Error = float64(inp2Error) / float64(ss.TrainEnv.MaxInp)
+			ss.Inp2Value = float64(inp2Val)
 		}
 	} else { //Distance is Target
 		ss.TrlCosDiff = float64(dist.CosDiff.Cos)
@@ -719,19 +723,21 @@ func (ss *Sim) TrialStats(accum bool) {
 	distError := math.Abs(float64(distVal - targDist))
 	ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
 
-	input1tsr := ss.ValsTsr(inp1.Nm)
+	/* input1tsr := ss.ValsTsr(inp1.Nm)
 	inp1.UnitValsTensor(input1tsr, "ActM")
 	inp1Val := ss.TrainEnv.DistPop.Decode(input1tsr.Values)
 	targInp1 := ss.TrainEnv.Inp1Val
 	inp1Error := math.Abs(float64(inp1Val - targInp1))
 	ss.Input1Error = float64(inp1Error) / float64(ss.TrainEnv.MaxInp)
+	
 
 	input2tsr := ss.ValsTsr(inp2.Nm)
 	inp2.UnitValsTensor(input2tsr, "ActM")
 	inp2Val := ss.TrainEnv.DistPop.Decode(input2tsr.Values)
 	targInp2 := ss.TrainEnv.Inp2Val
 	inp2Error := math.Abs(float64(inp2Val - targInp2))
-	ss.Input2Error = float64(inp2Error) / float64(ss.TrainEnv.MaxInp)
+	ss.Input2Error = float64(inp2Error) / float64(ss.TrainEnv.MaxInp) */
+	
 
 	if ss.TrlSSE > 0 {
 		ss.TrlErr = 1
