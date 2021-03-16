@@ -718,6 +718,20 @@ func (ss *Sim) TrialStats(accum bool) {
 	targDist := ss.TrainEnv.DistVal
 	distError := math.Abs(float64(distVal - targDist))
 	ss.DistanceError = float64(distError) / float64(ss.TrainEnv.MaxDist)
+	
+	input1tsr := ss.ValsTsr(inp1.Nm)
+	inp1.UnitValsTensor(input1tsr, "ActM")
+	inp1Val := ss.TrainEnv.DistPop.Decode(input1tsr.Values)
+	targInp1 := ss.TrainEnv.Inp1Val
+	inp1Error := math.Abs(float64(inp1Val - targInp1))
+	ss.Input1Error = float64(inp1Error) / float64(ss.TrainEnv.MaxInp)
+
+	input2tsr := ss.ValsTsr(inp2.Nm)
+	inp2.UnitValsTensor(input2tsr, "ActM")
+	inp2Val := ss.TrainEnv.DistPop.Decode(input2tsr.Values)
+	targInp2 := ss.TrainEnv.Inp1Val
+	inp2Error := math.Abs(float64(inp2Val - targInp2))
+	ss.Input2Error = float64(inp2Error) / float64(ss.TrainEnv.MaxInp)
 
 	if ss.TrlSSE > 0 {
 		ss.TrlErr = 1
