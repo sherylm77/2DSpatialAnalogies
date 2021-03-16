@@ -6,10 +6,12 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"math/rand"
 	"time"
 
 	"github.com/emer/emergent/env"
+	"github.com/emer/emergent/erand"
 	"github.com/emer/emergent/popcode"
 	"github.com/emer/etable/etensor"
 )
@@ -89,7 +91,7 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	for _, tsr := range ev.HipTable {
 		tsr.SetShape([]int{ev.NInpUnits}, nil, []string{""})
 		for i := range tsr.Values {
-			tsr.Values[i] = rand.Float32()
+			tsr.Values[i] = float32(math.Max(erand.Gauss(0.5, -1), 0))
 		}
 	}
 
