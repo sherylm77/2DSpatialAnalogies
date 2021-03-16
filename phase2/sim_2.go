@@ -100,6 +100,11 @@ var ParamSets = params.Sets{
 					"Layer.Act.Noise.Var":  "0.005",
 					"Layer.Act.Noise.Type": "GeNoise",
 				}},
+			{Sel: ".InputPrjn", Desc: "Noise for hidden layers",
+				Params: params.Params{
+					"Prjn.WtInit.Mean": "0.2",
+					"Prjn.WtInit.Var":  "0.15",
+				}},
 		},
 	}},
 }
@@ -242,7 +247,7 @@ func (ss *Sim) ConfigEnv() {
 	}
 	if ss.MaxEpcs == 0 { // allow user override
 		ss.MaxEpcs = 500
-		ss.NZeroStop = 5
+		ss.NZeroStop = -1
 	}
 
 	ss.TrainEnv.Nm = "TrainEnv"
@@ -297,8 +302,12 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	// NewFull returns a new prjn.Full connectivity pattern
 	full := prjn.NewFull()
 
-	net.BidirConnectLayers(inp1, combhid, full)
-	net.BidirConnectLayers(inp2, combhid, full)
+	fp, bp := net.BidirConnectLayers(inp1, combhid, full)
+	fp.SetClass("InputPrjn")
+	bp.SetClass("InputPrjn")
+	fp2, bp2 := net.BidirConnectLayers(inp2, combhid, full)
+	fp2.SetClass("InputPrjn")
+	bp2.SetClass("InputPrjn")
 	//net.ConnectLayers(attn, allohid, full, emer.Forward)
 	//net.ConnectLayers(alloinput, allohid, full, emer.Forward)
 	//net.ConnectLayers(allohid, alloinput, full, emer.Forward)
@@ -729,7 +738,7 @@ func (ss *Sim) TrialStats(accum bool) {
 	targInp1 := ss.TrainEnv.Inp1Val
 	inp1Error := math.Abs(float64(inp1Val - targInp1))
 	ss.Input1Error = float64(inp1Error) / float64(ss.TrainEnv.MaxInp)
-	
+
 
 	input2tsr := ss.ValsTsr(inp2.Nm)
 	inp2.UnitValsTensor(input2tsr, "ActM")
@@ -737,7 +746,6 @@ func (ss *Sim) TrialStats(accum bool) {
 	targInp2 := ss.TrainEnv.Inp2Val
 	inp2Error := math.Abs(float64(inp2Val - targInp2))
 	ss.Input2Error = float64(inp2Error) / float64(ss.TrainEnv.MaxInp) */
-	
 
 	if ss.TrlSSE > 0 {
 		ss.TrlErr = 1
