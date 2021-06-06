@@ -30,9 +30,12 @@ type ExEnv struct {
 	MaxInp     float32
 	NDistUnits int
 	NInpUnits  int
+	NFaceUnits int
 	DistPop    popcode.OneD `desc:"population encoding of distance value"`
 	Input1Pop  popcode.OneD
 	Input2Pop  popcode.OneD
+	Face1      etensor.Float32
+	Face2      etensor.Float32
 	Input1     etensor.Float32
 	Input2     etensor.Float32
 	Distance   etensor.Float32
@@ -40,8 +43,8 @@ type ExEnv struct {
 	Inp1Val    float32
 	Inp2Val    float32
 	HipTable   map[string]*etensor.Float32
-	Face1      string
-	Face2      string
+	Face1Val   string
+	Face2Val   string
 	Run        env.Ctr `view:"inline" desc:"current run of model as provided during Init"`
 	Epoch      env.Ctr `view:"inline" desc:"number of times through Seq.Max number of sequences"`
 	Trial      env.Ctr `view:"inline" desc:"trial increments over input states -- could add Event as a lower level"`
@@ -59,6 +62,8 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.DistPop.Defaults()
 	ev.DistPop.Min = ev.MinDist
 	ev.DistPop.Max = ev.MaxDist // + 2
+
+	ev.NFaceUnits = 4
 
 	ev.MaxInp = float32(3) // float32(sz)
 	ev.MinInp = -2
@@ -79,6 +84,8 @@ func (ev *ExEnv) Config(sz int, ntrls int) {
 	ev.Trial.Max = ntrls
 
 	ev.Distance.SetShape([]int{ev.NDistUnits}, nil, []string{"Distance"})
+	ev.Face1.SetShape([]int{ev.NFaceUnits}, nil, []string{"Face1"})
+	ev.Face2.SetShape([]int{ev.NFaceUnits}, nil, []string{"Face2"})
 	ev.Input1.SetShape([]int{ev.NInpUnits}, nil, []string{"Input1"})
 	ev.Input2.SetShape([]int{ev.NInpUnits}, nil, []string{"Input2"})
 
@@ -113,6 +120,8 @@ func (ev *ExEnv) States() env.Elements {
 		// {"X", []int{ev.Size}, []string{"X"}},
 		// {"Y", []int{ev.Size}, []string{"Y"}},
 		{"Distance", []int{ev.Size}, []string{"Distance"}},
+		{"Face 1", []int{ev.Size}, []string{"Face 1"}},
+		{"Face 2", []int{ev.Size}, []string{"Face 2"}},
 		{"Input 1", []int{ev.Size}, []string{"Input 1"}},
 		{"Input 2", []int{ev.Size}, []string{"Input 2"}},
 	}
@@ -127,6 +136,10 @@ func (ev *ExEnv) State(element string) etensor.Tensor {
 		return &ev.Input1
 	case "Input 2":
 		return &ev.Input2
+	case "Face 1":
+		return &ev.Face1
+	case "Face 2":
+		return &ev.Face2
 	}
 	return nil
 }
@@ -176,24 +189,29 @@ func (ev *ExEnv) NewPoint() {
 	distance := input2 - input1
 	switch input1 {
 	case 0:
-		ev.Face1 = "A"
+		ev.Face1Val = "A"
 	case 1:
-		ev.Face1 = "B"
+		ev.Face1Val = "B"
 	case 2:
-		ev.Face1 = "C"
+		ev.Face1Val = "C"
 	case 3:
-		ev.Face1 = "D"
+		ev.Face1Val = "D"
 	}
 	switch input2 {
 	case 0:
-		ev.Face2 = "A"
+		ev.Face2Val = "A"
 	case 1:
-		ev.Face2 = "B"
+		ev.Face2Val = "B"
 	case 2:
-		ev.Face2 = "C"
+		ev.Face2Val = "C"
 	case 3:
-		ev.Face2 = "D"
+		ev.Face2Val = "D"
 	}
+
+	ev.Face1.SetZeros()
+	ev.Face1.SetFloat([]int{input1}, 1)
+	ev.Face2.SetZeros()
+	ev.Face2.SetFloat([]int{input2}, 1)
 
 	ev.Input1Pop.Encode(&ev.Input1.Values, float32(input1), int(ev.NInpUnits), false)
 	ev.Input2Pop.Encode(&ev.Input2.Values, float32(input2), int(ev.NInpUnits), false)

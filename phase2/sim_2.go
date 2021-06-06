@@ -102,7 +102,7 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".InputPrjn", Desc: "Noise for hidden layers",
 				Params: params.Params{
-					"Prjn.WtInit.Mean": "0.2",
+					"Prjn.WtInit.Mean": "0.3",
 					"Prjn.WtInit.Var":  "0.15",
 				}},
 		},
@@ -273,6 +273,8 @@ func (ss *Sim) ConfigEnv() {
 
 func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.InitName(net, "EnvSim")
+	face1 := net.AddLayer2D("Face 1", 1, ss.TrainEnv.NFaceUnits, emer.Input)
+	face2 := net.AddLayer2D("Face 2", 1, ss.TrainEnv.NFaceUnits, emer.Input)
 	inp1 := net.AddLayer2D("Input 1", 1, ss.TrainEnv.NInpUnits, emer.Input)
 	inp2 := net.AddLayer2D("Input 2", 1, ss.TrainEnv.NInpUnits, emer.Input)
 	//hid1 := net.AddLayer2D("Hidden 1", 15, 15, emer.Hidden)
@@ -301,6 +303,9 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	// note: see emergent/prjn module for all the options on how to connect
 	// NewFull returns a new prjn.Full connectivity pattern
 	full := prjn.NewFull()
+
+	net.BidirConnectLayers(face1, inp1, full)
+	net.BidirConnectLayers(face2, inp2, full)
 
 	fp, bp := net.BidirConnectLayers(inp1, combhid, full)
 	fp.SetClass("InputPrjn")
@@ -360,9 +365,9 @@ func (ss *Sim) NewRndSeed() {
 // and add a few tabs at the end to allow for expansion..
 func (ss *Sim) Counters(train bool) string {
 	if train {
-		return fmt.Sprintf("Run:\t%d\tEpoch:\t%d\tTrial:\t%d\tCycle:\t%d\tName:\t%v\t\t\t", ss.TrainEnv.Run.Cur, ss.TrainEnv.Epoch.Cur, ss.TrainEnv.Trial.Cur, ss.Time.Cycle, ss.TrainEnv.String(ss.InpTarg, ss.InpLayTarg, ss.TrainEnv.Face1, ss.TrainEnv.Face2))
+		return fmt.Sprintf("Run:\t%d\tEpoch:\t%d\tTrial:\t%d\tCycle:\t%d\tName:\t%v\t\t\t", ss.TrainEnv.Run.Cur, ss.TrainEnv.Epoch.Cur, ss.TrainEnv.Trial.Cur, ss.Time.Cycle, ss.TrainEnv.String(ss.InpTarg, ss.InpLayTarg, ss.TrainEnv.Face1Val, ss.TrainEnv.Face2Val))
 	} else {
-		return fmt.Sprintf("Run:\t%d\tEpoch:\t%d\tTrial:\t%d\tCycle:\t%d\tName:\t%v\t\t\t", ss.TrainEnv.Run.Cur, ss.TrainEnv.Epoch.Cur, ss.TestEnv.Trial.Cur, ss.Time.Cycle, ss.TestEnv.String(ss.InpTarg, ss.InpLayTarg, ss.TrainEnv.Face1, ss.TrainEnv.Face2))
+		return fmt.Sprintf("Run:\t%d\tEpoch:\t%d\tTrial:\t%d\tCycle:\t%d\tName:\t%v\t\t\t", ss.TrainEnv.Run.Cur, ss.TrainEnv.Epoch.Cur, ss.TestEnv.Trial.Cur, ss.Time.Cycle, ss.TestEnv.String(ss.InpTarg, ss.InpLayTarg, ss.TrainEnv.Face1Val, ss.TrainEnv.Face2Val))
 	}
 }
 
@@ -503,8 +508,8 @@ func (ss *Sim) AlphaCycHip(train bool) {
 	inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
 	inp2tsr := ss.ValsTsr(inp2.Nm)
 	inp2.UnitValsTensor(inp2tsr, "Act")
-	ss.TrainEnv.HipTable[ss.TrainEnv.Face1] = inp1tsr
-	ss.TrainEnv.HipTable[ss.TrainEnv.Face2] = inp2tsr
+	ss.TrainEnv.HipTable[ss.TrainEnv.Face1Val] = inp1tsr
+	ss.TrainEnv.HipTable[ss.TrainEnv.Face2Val] = inp2tsr
 
 	if train {
 		ss.Net.DWt()
@@ -526,7 +531,7 @@ func (ss *Sim) ApplyInputs(en env.Env, hip bool, applyDist bool) {
 	// going to the same layers, but good practice and cheap anyway
 
 	if applyDist {
-		lays := []string{"Distance"}
+		lays := []string{"Distance", "Face 1", "Face 2"}
 		for _, lnm := range lays {
 			ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
 			pats := en.State(ly.Nm)
@@ -539,11 +544,11 @@ func (ss *Sim) ApplyInputs(en env.Env, hip bool, applyDist bool) {
 	ly := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
 	ly2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
 	if hip {
-		pats := ss.TrainEnv.HipTable[ss.TrainEnv.Face1]
+		pats := ss.TrainEnv.HipTable[ss.TrainEnv.Face1Val]
 		ly.ApplyExt((etensor.Tensor(pats)))
 
 		// Input2 Face Pats
-		pats2 := ss.TrainEnv.HipTable[ss.TrainEnv.Face2]
+		pats2 := ss.TrainEnv.HipTable[ss.TrainEnv.Face2Val]
 		ly2.ApplyExt((etensor.Tensor(pats2)))
 	} else {
 		pats := en.State(ly.Nm)
@@ -1124,7 +1129,7 @@ func (ss *Sim) LogTstTrl(dt *etable.Table) {
 	dt.SetCellFloat("Run", row, float64(ss.TrainEnv.Run.Cur))
 	dt.SetCellFloat("Epoch", row, float64(epc))
 	dt.SetCellFloat("Trial", row, float64(trl))
-	dt.SetCellString("TrialName", row, ss.TestEnv.String(ss.InpTarg, ss.InpLayTarg, ss.TrainEnv.Face1, ss.TrainEnv.Face2))
+	dt.SetCellString("TrialName", row, ss.TestEnv.String(ss.InpTarg, ss.InpLayTarg, ss.TrainEnv.Face1Val, ss.TrainEnv.Face2Val))
 	dt.SetCellFloat("Err", row, ss.TrlErr)
 	dt.SetCellFloat("SSE", row, ss.TrlSSE)
 	dt.SetCellFloat("AvgSSE", row, ss.TrlAvgSSE)
