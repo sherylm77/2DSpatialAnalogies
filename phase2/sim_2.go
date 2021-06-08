@@ -509,7 +509,8 @@ func (ss *Sim) AlphaCyc(train bool) {
 	inp2tsr := ss.ValsTsr(inp2.Nm)
 	inp2.UnitValsTensor(inp2tsr, "Act")
 	ss.TrainEnv.HipTable[ss.TrainEnv.Face1Val] = inp1tsr
-	ss.TrainEnv.HipTable[ss.TrainEnv.Face2Val] = inp2tsr*/
+	ss.TrainEnv.HipTable[ss.TrainEnv.Face2Val] = inp2tsr
+	*/
 
 	if train {
 		ss.Net.DWt()
