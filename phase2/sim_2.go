@@ -450,7 +450,7 @@ func (ss *Sim) AlphaCyc(train bool) {
 }
 
 // Second version of AlphaCyc function for use in hippocampus
-func (ss *Sim) AlphaCycHip(train bool) {
+/*func (ss *Sim) AlphaCycHip(train bool) {
 	// ss.Win.PollEvents() // this can be used instead of running in a separate goroutine
 	viewUpdt := ss.TrainUpdt
 	if !train {
@@ -509,7 +509,7 @@ func (ss *Sim) AlphaCycHip(train bool) {
 	inp2tsr := ss.ValsTsr(inp2.Nm)
 	inp2.UnitValsTensor(inp2tsr, "Act")
 	ss.TrainEnv.HipTable[ss.TrainEnv.Face1Val] = inp1tsr
-	ss.TrainEnv.HipTable[ss.TrainEnv.Face2Val] = inp2tsr
+	ss.TrainEnv.HipTable[ss.TrainEnv.Face2Val] = inp2tsr*/
 
 	if train {
 		ss.Net.DWt()
@@ -543,14 +543,14 @@ func (ss *Sim) ApplyInputs(en env.Env, hip bool, applyDist bool) {
 
 	ly := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
 	ly2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
-	if hip {
+	/*if hip {
 		pats := ss.TrainEnv.HipTable[ss.TrainEnv.Face1Val]
 		ly.ApplyExt((etensor.Tensor(pats)))
 
 		// Input2 Face Pats
 		pats2 := ss.TrainEnv.HipTable[ss.TrainEnv.Face2Val]
 		ly2.ApplyExt((etensor.Tensor(pats2)))
-	} else {
+	} else {*/
 		pats := en.State(ly.Nm)
 		if pats != nil {
 			ly.ApplyExt(pats)
@@ -560,7 +560,7 @@ func (ss *Sim) ApplyInputs(en env.Env, hip bool, applyDist bool) {
 		pats2 := en.State(ly2.Nm)
 		if pats2 != nil {
 			ly2.ApplyExt(pats2)
-		}
+		//}
 	}
 }
 
