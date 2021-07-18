@@ -84,7 +84,7 @@ var ParamSets = params.Sets{
 			// 	Params: params.Params{
 			// 		"Layer.Inhib.Layer.Gi": "1.6",
 			// 	}},
-			{Sel: "#DistanceToHidden 2", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates",
+			{Sel: "#DistanceToCombined Hidden", Desc: "top-down back-projections MUST have lower relative weight scale, otherwise network hallucinates",
 				Params: params.Params{
 					"Prjn.WtScale.Rel": "0.5",
 				}},
@@ -102,8 +102,29 @@ var ParamSets = params.Sets{
 				}},
 			{Sel: ".InputPrjn", Desc: "Noise for hidden layers",
 				Params: params.Params{
-					"Prjn.WtInit.Mean": "0.3",
-					"Prjn.WtInit.Var":  "0.15",
+					"Prjn.WtInit.Mean": "0.3",  //orig 0.3 then 0.5
+					"Prjn.WtInit.Var":  "0.15", // orig 0.15 then 0.25
+				}},
+			{Sel: ".FacePrjn", Desc: "Noise for hidden layers",
+				Params: params.Params{
+					"Prjn.WtInit.Mean": "0.5",
+					"Prjn.WtInit.Var":  "0",
+				}},
+		},
+	}},
+	{Name: "Freezewts", Desc: "Freeze most of network except face to input", Sheets: params.Sheets{
+		"Network": &params.Sheet{
+			{Sel: "Prjn", Desc: "freeze all weights",
+				Params: params.Params{
+					"Prjn.Learn.Learn": "false",
+				}},
+			{Sel: "#Face1ToInput1", Desc: "unfreeze face 1 to input 1",
+				Params: params.Params{
+					"Prjn.Learn.Learn": "true",
+				}},
+			{Sel: "#Face2ToInput2", Desc: "unfreeze face 2 to input 2",
+				Params: params.Params{
+					"Prjn.Learn.Learn": "true",
 				}},
 		},
 	}},
@@ -226,7 +247,7 @@ func (ss *Sim) New() {
 	//ss.LayStatNms = []string{"EgoInput"}
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////
 // 		Configs
 
 // Config configures all the elements using the standard functions
@@ -246,7 +267,7 @@ func (ss *Sim) ConfigEnv() {
 		ss.MaxRuns = 10
 	}
 	if ss.MaxEpcs == 0 { // allow user override
-		ss.MaxEpcs = 500
+		ss.MaxEpcs = 200
 		ss.NZeroStop = -1
 	}
 
@@ -273,14 +294,15 @@ func (ss *Sim) ConfigEnv() {
 
 func (ss *Sim) ConfigNet(net *leabra.Network) {
 	net.InitName(net, "EnvSim")
-	face1 := net.AddLayer2D("Face 1", 1, ss.TrainEnv.NFaceUnits, emer.Input)
-	face2 := net.AddLayer2D("Face 2", 1, ss.TrainEnv.NFaceUnits, emer.Input)
-	inp1 := net.AddLayer2D("Input 1", 1, ss.TrainEnv.NInpUnits, emer.Input)
-	inp2 := net.AddLayer2D("Input 2", 1, ss.TrainEnv.NInpUnits, emer.Input)
-	//hid1 := net.AddLayer2D("Hidden 1", 15, 15, emer.Hidden)
-	//hid2 := net.AddLayer2D("Hidden 2", 15, 15, emer.Hidden)
+	face1 := net.AddLayer2D("Face1", 1, ss.TrainEnv.NFaceUnits, emer.Input)
+	face2 := net.AddLayer2D("Face2", 1, ss.TrainEnv.NFaceUnits, emer.Input)
+
+	inp1 := net.AddLayer2D("Input1", 1, ss.TrainEnv.NInpUnits, emer.Input)
+	inp2 := net.AddLayer2D("Input2", 1, ss.TrainEnv.NInpUnits, emer.Input)
+	//hid1 := net.AddLayer2D("Hidden1", 15, 15, emer.Hidden)
+	//hid2 := net.AddLayer2D("Hidden2", 15, 15, emer.Hidden)
 	combhid := net.AddLayer2D("Combined Hidden", 9, 9, emer.Hidden)
-	hid2 := net.AddLayer2D("Hidden 2", 9, 9, emer.Hidden)
+	//hid2 := net.AddLayer2D("Hidden2", 9, 9, emer.Hidden)
 	dist := net.AddLayer2D("Distance", 1, ss.TrainEnv.NDistUnits, emer.Target)
 
 	//x.SetClass("Output")
@@ -294,18 +316,23 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	//allohid.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "EgoHidden", YAlign: relpos.Front, Space: 4})
 	//alloinput.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "EgoInput", YAlign: relpos.Front, Space: 2})
 	//inp1.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Input2", YAlign: relpos.Front, Space: 2})
-	//hid1.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input 1", YAlign: relpos.Front, Space: 4})
-	//hid1.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Hidden 2", YAlign: relpos.Front, Space: 2})
-	//hid2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input 2", YAlign: relpos.Front, XAlign: relpos.Left})
+	//hid1.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input1", YAlign: relpos.Front, Space: 4})
+	//hid1.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Hidden2", YAlign: relpos.Front, Space: 2})
+	//hid2.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "Input2", YAlign: relpos.Front, XAlign: relpos.Left})
 	//attn.SetRelPos(relpos.Rel{Rel: relpos.Above, Other: "EgoHidden", YAlign: relpos.Front, XAlign: relpos.Left})
 	//dist.SetRelPos(relpos.Rel{Rel: relpos.LeftOf, Other: "Attn", YAlign: relpos.Front, XAlign: relpos.Middle, Space: 1})
 	//ang.SetRelPos(relpos.Rel{Rel: relpos.Behind, Other: "Distance", XAlign: relpos.Middle, Space: 4, Scale: 0.5})
+
 	// note: see emergent/prjn module for all the options on how to connect
 	// NewFull returns a new prjn.Full connectivity pattern
 	full := prjn.NewFull()
 
-	net.BidirConnectLayers(face1, inp1, full)
-	net.BidirConnectLayers(face2, inp2, full)
+	fpf, bpf := net.BidirConnectLayers(face1, inp1, full)
+	fpf.SetClass("FacePrjn")
+	bpf.SetClass("FacePrjn")
+	fpf2, bpf2 := net.BidirConnectLayers(face2, inp2, full)
+	fpf2.SetClass("FacePrjn")
+	bpf2.SetClass("FacePrjn")
 
 	fp, bp := net.BidirConnectLayers(inp1, combhid, full)
 	fp.SetClass("InputPrjn")
@@ -321,8 +348,9 @@ func (ss *Sim) ConfigNet(net *leabra.Network) {
 	//net.BidirConnectLayers(egohid, y, full)
 	//net.BidirConnectLayers(allohid, inp, full)
 	//net.BidirConnectLayers(hid1, combhid, full)
-	net.BidirConnectLayers(combhid, hid2, full)
-	net.BidirConnectLayers(hid2, dist, full)
+	//net.BidirConnectLayers(combhid, hid2, full)
+	///net.BidirConnectLayers(hid2, dist, full)
+	net.BidirConnectLayers(combhid, dist, full)
 
 	// note: if you wanted to change a layer type from e.g., Target to Compare, do this:
 	// out.SetType(emer.Compare)
@@ -492,25 +520,24 @@ func (ss *Sim) AlphaCyc(train bool) {
 			}
 		}
 		if qtr >= 2 {
-			inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
-			inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
+			inp1 := ss.Net.LayerByName("Input1").(leabra.LeabraLayer).AsLeabra()
+			inp2 := ss.Net.LayerByName("Input2").(leabra.LeabraLayer).AsLeabra()
 			dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
 			inp1.SetType(emer.Compare)
 			inp2.SetType(emer.Compare)
 			dist.SetType(emer.Input)
 			ss.Net.InitExt()
-			ss.ApplyInputs(&ss.TrainEnv, true, true)
+			ss.ApplyInputs(&ss.TrainEnv)
 		}
 	}
-	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
+	inp1 := ss.Net.LayerByName("Input1").(leabra.LeabraLayer).AsLeabra()
 	inp1tsr := ss.ValsTsr(inp1.Nm)
 	inp1.UnitValsTensor(inp1tsr, "Act")
-	inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
+	inp2 := ss.Net.LayerByName("Input2").(leabra.LeabraLayer).AsLeabra()
 	inp2tsr := ss.ValsTsr(inp2.Nm)
 	inp2.UnitValsTensor(inp2tsr, "Act")
 	ss.TrainEnv.HipTable[ss.TrainEnv.Face1Val] = inp1tsr
 	ss.TrainEnv.HipTable[ss.TrainEnv.Face2Val] = inp2tsr
-	*/
 
 	if train {
 		ss.Net.DWt()
@@ -521,37 +548,35 @@ func (ss *Sim) AlphaCyc(train bool) {
 	if !train {
 		ss.TstCycPlot.GoUpdate() // make sure up-to-date at end
 	}
-}
+}*/
 
 // ApplyInputs applies input patterns from given environment.
 // It is good practice to have this be a separate method with appropriate
 // args so that it can be used for various different contexts
 // (training, testing, etc).
-func (ss *Sim) ApplyInputs(en env.Env, hip bool, applyDist bool) {
+func (ss *Sim) ApplyInputs(en env.Env) {
 	ss.Net.InitExt() // clear any existing inputs -- not strictly necessary if always
 	// going to the same layers, but good practice and cheap anyway
 
-	if applyDist {
-		lays := []string{"Distance", "Face 1", "Face 2"}
-		for _, lnm := range lays {
-			ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
-			pats := en.State(ly.Nm)
-			if pats != nil {
-				ly.ApplyExt(pats)
-			}
+	lays := []string{"Distance", "Input1", "Input2"}
+	for _, lnm := range lays {
+		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
+		pats := en.State(ly.Nm)
+		if pats != nil {
+			ly.ApplyExt(pats)
 		}
 	}
 
-	ly := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
-	ly2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
-	/*if hip {
+	/*ly := ss.Net.LayerByName("Input1").(leabra.LeabraLayer).AsLeabra()
+	ly2 := ss.Net.LayerByName("Input2").(leabra.LeabraLayer).AsLeabra()
+	if hip {
 		pats := ss.TrainEnv.HipTable[ss.TrainEnv.Face1Val]
 		ly.ApplyExt((etensor.Tensor(pats)))
 
 		// Input2 Face Pats
 		pats2 := ss.TrainEnv.HipTable[ss.TrainEnv.Face2Val]
 		ly2.ApplyExt((etensor.Tensor(pats2)))
-	} else {*/
+	} else {
 		pats := en.State(ly.Nm)
 		if pats != nil {
 			ly.ApplyExt(pats)
@@ -561,8 +586,23 @@ func (ss *Sim) ApplyInputs(en env.Env, hip bool, applyDist bool) {
 		pats2 := en.State(ly2.Nm)
 		if pats2 != nil {
 			ly2.ApplyExt(pats2)
-		//}
+		}
+	}*/
+}
+
+func (ss *Sim) ApplyInputsFace(en env.Env) {
+
+	ss.Net.InitExt()
+
+	lays := []string{"Distance", "Face1", "Face2"}
+	for _, lnm := range lays {
+		ly := ss.Net.LayerByName(lnm).(leabra.LeabraLayer).AsLeabra()
+		pats := en.State(ly.Nm)
+		if pats != nil {
+			ly.ApplyExt(pats)
+		}
 	}
+
 }
 
 // TrainTrial runs one trial of training using TrainEnv
@@ -596,11 +636,16 @@ func (ss *Sim) TrainTrial() {
 				return
 			}
 		}
+		if epc == 5 {
+			ss.SetParamsSet("Freezewts", "", false)
+		}
 	}
-	ss.InpTarg = true //erand.BoolProb(0.5, -1) //true //always make Input target layer //
 
-	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
-	inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
+	//ss.InpTarg = true //erand.BoolProb(0.5, -1) //true //always make Input target layer //
+	ss.InpTarg = (rand.Intn(2) == 1)
+
+	inp1 := ss.Net.LayerByName("Input1").(leabra.LeabraLayer).AsLeabra()
+	inp2 := ss.Net.LayerByName("Input2").(leabra.LeabraLayer).AsLeabra()
 	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
 
 	if ss.InpTarg {
@@ -619,14 +664,14 @@ func (ss *Sim) TrainTrial() {
 		dist.SetType(emer.Target)
 	}
 	//ss.ApplyInputs(&ss.TrainEnv)
-	if epc > 5 {
-		inp1.SetType(emer.Input)
-		inp2.SetType(emer.Input)
-		dist.SetType(emer.Compare)
-		ss.ApplyInputs(&ss.TrainEnv, true, false)
-		ss.AlphaCycHip(false) // don't train for hippocampus
+	if epc > 20 {
+		inp1.SetType(emer.Hidden)
+		inp2.SetType(emer.Hidden)
+		dist.SetType(emer.Target)
+		ss.ApplyInputsFace(&ss.TrainEnv)
+		ss.AlphaCyc(true) // don't train for hippocampus
 	} else {
-		ss.ApplyInputs(&ss.TrainEnv, false, true)
+		ss.ApplyInputs(&ss.TrainEnv)
 		ss.AlphaCyc(true)
 	}
 	ss.TrialStats(true) // accumulate
@@ -689,8 +734,8 @@ func (ss *Sim) InitStats() {
 // different time-scales over which stats could be accumulated etc.
 // You can also aggregate directly from log data, as is done for testing stats
 func (ss *Sim) TrialStats(accum bool) {
-	inp1 := ss.Net.LayerByName("Input 1").(leabra.LeabraLayer).AsLeabra()
-	inp2 := ss.Net.LayerByName("Input 2").(leabra.LeabraLayer).AsLeabra()
+	inp1 := ss.Net.LayerByName("Input1").(leabra.LeabraLayer).AsLeabra()
+	inp2 := ss.Net.LayerByName("Input2").(leabra.LeabraLayer).AsLeabra()
 	dist := ss.Net.LayerByName("Distance").(leabra.LeabraLayer).AsLeabra()
 
 	if ss.InpTarg {
@@ -859,7 +904,7 @@ func (ss *Sim) TestTrial(returnOnChg bool) {
 		}
 	}
 
-	ss.ApplyInputs(&ss.TestEnv, false, true)
+	ss.ApplyInputs(&ss.TestEnv)
 	ss.AlphaCyc(false)   // !train
 	ss.TrialStats(false) // !accumulate
 	ss.LogTstTrl(ss.TstTrlLog)
